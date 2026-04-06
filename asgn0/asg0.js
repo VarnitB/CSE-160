@@ -16,7 +16,6 @@ function main() {
 
   clearCanvas();
 
-  // Initial required example vector
   let v1 = new Vector3([2.25, 2.25, 0]);
   drawVector(v1, 'red');
 }
@@ -110,9 +109,9 @@ function handleDrawOperationEvent() {
     v4.normalize();
     drawVector(v3, 'green');
     drawVector(v4, 'green');
-  } else if (operation === 'angle') {
+  } else if (operation === 'angleBetween') {
     console.log('Angle between v1 and v2:', angleBetween(v1, v2), 'degrees');
-  } else if (operation === 'area') {
+  } else if (operation === 'areaTriangle') {
     console.log('Area of the triangle:', areaTriangle(v1, v2));
   }
 }
@@ -126,8 +125,6 @@ function angleBetween(v1, v2) {
   }
 
   let cosAlpha = Vector3.dot(v1, v2) / (mag1 * mag2);
-
-  // Clamp for floating point safety
   cosAlpha = Math.max(-1, Math.min(1, cosAlpha));
 
   const angleRadians = Math.acos(cosAlpha);
