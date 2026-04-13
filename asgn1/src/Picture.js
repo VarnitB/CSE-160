@@ -57,9 +57,8 @@ function animateMarioScene() {
 function renderMarioScene(marioJump, blockBump, mushroomRise, showMushroom) {
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  // Bigger, centered layout
   const marioX = -0.14;
-  const marioY = -0.48 + marioJump;
+  const marioY = -0.70 + marioJump;
   const marioScale = 1.0;
 
   const blockSize = 0.34;
@@ -144,19 +143,28 @@ function drawVBBlock(x, y, size) {
 
   // V
   drawTriangleColor([
-    x + size * 0.20, y + size * 0.72,
-    x + size * 0.28, y + size * 0.28,
-    x + size * 0.36, y + size * 0.72
+    x + size * 0.18, y + size * 0.72,
+    x + size * 0.28, y + size * 0.26,
+    x + size * 0.38, y + size * 0.72
   ], text);
 
   // B spine
-  drawRect(x + size * 0.50, y + size * 0.25, size * 0.07, size * 0.50, text);
-  // B top
-  drawRect(x + size * 0.57, y + size * 0.56, size * 0.14, size * 0.10, text);
-  // B mid
-  drawRect(x + size * 0.57, y + size * 0.43, size * 0.11, size * 0.07, text);
-  // B bot
-  drawRect(x + size * 0.57, y + size * 0.30, size * 0.14, size * 0.10, text);
+  drawRect(x + size * 0.50, y + size * 0.26, size * 0.08, size * 0.48, text);
+
+  // B top bar
+  drawRect(x + size * 0.58, y + size * 0.60, size * 0.13, size * 0.08, text);
+
+  // B middle bar
+  drawRect(x + size * 0.58, y + size * 0.46, size * 0.11, size * 0.07, text);
+
+  // B bottom bar
+  drawRect(x + size * 0.58, y + size * 0.32, size * 0.13, size * 0.08, text);
+
+  // B right edge top
+  drawRect(x + size * 0.68, y + size * 0.52, size * 0.04, size * 0.16, text);
+
+  // B right edge bottom
+  drawRect(x + size * 0.68, y + size * 0.32, size * 0.04, size * 0.14, text);
 }
 
 // ===================== Mushroom =====================
