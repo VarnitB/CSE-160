@@ -58,14 +58,14 @@ function renderMarioScene(marioJump, blockBump, mushroomRise, showMushroom) {
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   // Bigger, centered layout
-  const marioX = -0.22;
-  const marioY = -0.52 + marioJump;
-  const marioScale = 1.25;
+  const marioX = -0.18;
+  const marioY = -0.50 + marioJump;
+  const marioScale = 1.05;
 
   const blockSize = 0.34;
-  const marioCenterX = marioX + 0.18;
+  const marioCenterX = marioX + 0.16;
   const blockX = marioCenterX - blockSize / 2;
-  const blockY = 0.10 + blockBump;
+  const blockY = 0.12 + blockBump;
 
   drawVBBlock(blockX, blockY, blockSize);
 
