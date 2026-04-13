@@ -43,6 +43,23 @@
       max-width: 900px;
       background: #f8f8f8;
     }
+
+    .reference-section {
+      margin-top: 20px;
+      max-width: 900px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      background: #fafafa;
+    }
+
+    .reference-section img {
+      display: block;
+      margin-top: 10px;
+      max-width: 400px;
+      width: 100%;
+      height: auto;
+      border: 1px solid #444;
+    }
   </style>
 </head>
 <body onload="main()">
@@ -55,7 +72,7 @@
   <div class="controls">
     <div class="section">
       <button id="clearButton">Clear Canvas</button>
-      <button id="drawPictureButton">Play Mario Scene</button>
+      <button id="drawPictureButton">Draw & Play Mario Scene</button>
     </div>
 
     <div class="section">
@@ -88,9 +105,13 @@
   </div>
 
   <div class="note">
-    <p><strong>Current status:</strong> Basic paint app completed.</p>
-    <p><strong>Picture button:</strong> Placeholder for now. We will replace it with your real triangle drawing next.</p>
-    <p><strong>Awesomeness:</strong> We can add a small animation/polish feature after the custom picture is done.</p>
+    <p><strong>Picture:</strong> A picture of Mario and the VB block.</p>
+    <p><strong>Awesomeness:</strong> Like in the Mario games, Mario jumps up and hits the ? block (VB block here), revealing a Super Mushroom that appears and then despawns.</p>
+  </div>
+
+  <div class="reference-section">
+    <h2>Reference Drawing</h2>
+    <img src="reference.jpg" alt="Reference drawing for Mario and VB block">
   </div>
 
   <script src="Point.js"></script>
