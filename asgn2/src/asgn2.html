@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Assignment 2 - Blocky Camel</title>
+  </head>
+
+  <body onload="main()">
+    <h1>Assignment 2: Blocky Camel</h1>
+
+    <canvas id="webgl" width="500" height="500">
+      Please use a browser that supports canvas.
+    </canvas>
+
+    <br><br>
+
+    <p>
+      Global Rotation:
+      <input type="range" min="-180" max="180" value="0" id="angleSlide">
+    </p>
+
+    <p>
+      Neck Joint:
+      <input type="range" min="-45" max="45" value="0" id="neckSlide">
+    </p>
+
+    <p>
+      Head Joint:
+      <input type="range" min="-45" max="45" value="0" id="headSlide">
+    </p>
+
+    <p>
+      Mouth Joint:
+      <input type="range" min="-30" max="30" value="0" id="mouthSlide">
+    </p>
+
+    <p>
+      Tail Joint:
+      <input type="range" min="-45" max="45" value="0" id="tailSlide">
+    </p>
+
+    <p>
+      <button id="animationOnButton">Animation On</button>
+      <button id="animationOffButton">Animation Off</button>
+    </p>
+
+    <p>
+      Click and drag on the canvas to rotate the camel.
+      Shift-click the canvas for the poke animation.
+    </p>
+
+    <p id="performance">Performance:</p>
+
+    <!-- Library files -->
+    <script src="../lib/webgl-utils.js"></script>
+    <script src="../lib/webgl-debug.js"></script>
+    <script src="../lib/cuon-utils.js"></script>
+    <script src="../lib/cuon-matrix.js"></script>
+
+    <!-- Shape files -->
+    <script src="Triangle.js"></script>
+    <script src="Point.js"></script>
+    <script src="Circle.js"></script>
+    <script src="Cube.js"></script>
+
+    <!-- Main file -->
+    <script src="BlockyAnimal.js"></script>
+  </body>
+</html>
