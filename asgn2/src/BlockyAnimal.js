@@ -249,7 +249,7 @@ function drawLeg(baseX, baseZ, upperAngle, kneeAngle, footAngle, phaseColor) {
   const camelDark = [0.50, 0.30, 0.12, 1.0];
 
   let upperJoint = new Matrix4();
-  upperJoint.translate(baseX, -0.18, baseZ);
+  upperJoint.translate(baseX, -0.17, baseZ);
 
   // FIXED: rotate around Z so legs swing forward/back along the body.
   upperJoint.rotate(upperAngle, 0, 0, 1);
@@ -271,7 +271,7 @@ function drawLeg(baseX, baseZ, upperAngle, kneeAngle, footAngle, phaseColor) {
   drawCube(lowerLeg, phaseColor ? camelColor : camelDark);
 
   let footJoint = new Matrix4(kneeJoint);
-  footJoint.translate(0.0, -0.82, 0.0);
+  footJoint.translate(0.07, -0.43, 0.0);
 
   // FIXED: foot rotates forward/back too.
   footJoint.rotate(footAngle, 0, 0, 1);
@@ -405,7 +405,7 @@ function renderScene() {
   drawCube(tail, camelDark);
 
   let tailTuft = new Matrix4(tailJoint);
-  tailTuft.translate(-0.06, -0.42, 0.0);
+  tailTuft.translate(-0.01, -0.34, 0.0);
   tailTuft.rotate(180, 1, 0, 0);
   tailTuft.scale(0.16, 0.20, 0.16);
   drawCone(tailTuft, black);
