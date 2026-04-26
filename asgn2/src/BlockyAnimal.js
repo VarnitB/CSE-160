@@ -194,8 +194,8 @@ function renderScene() {
   let startTime = performance.now();
 
   let globalRotMat = new Matrix4()
-    .scale(0.55, 0.55, 0.55)
-    .translate(0.0, 0.55, 0.0)
+    .scale(0.55, -0.2, 0.0)
+    .translate(0.0, 0.5, 0.5)
     .rotate(g_globalAngle, 0, 1, 0)
     .rotate(g_mouseXAngle, 1, 0, 0)
     .rotate(g_mouseYAngle, 0, 1, 0);
