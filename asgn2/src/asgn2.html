@@ -8,7 +8,7 @@
   <body onload="main()">
     <h1>Assignment 2: Blocky Camel</h1>
 
-    <canvas id="webgl" width="500" height="500">
+    <canvas id="webgl" width="600" height="600">
       Please use a browser that supports canvas.
     </canvas>
 
@@ -36,7 +36,27 @@
 
     <p>
       Tail Joint:
-      <input type="range" min="-45" max="45" value="0" id="tailSlide">
+      <input type="range" min="-60" max="60" value="0" id="tailSlide">
+    </p>
+
+    <p>
+      Front Leg Joint:
+      <input type="range" min="-45" max="45" value="0" id="frontLegSlide">
+    </p>
+
+    <p>
+      Back Leg Joint:
+      <input type="range" min="-45" max="45" value="0" id="backLegSlide">
+    </p>
+
+    <p>
+      Knee Joint:
+      <input type="range" min="-45" max="45" value="0" id="kneeSlide">
+    </p>
+
+    <p>
+      Foot Joint:
+      <input type="range" min="-30" max="30" value="0" id="footSlide">
     </p>
 
     <p>
@@ -46,7 +66,7 @@
 
     <p>
       Click and drag on the canvas to rotate the camel.
-      Shift-click the canvas for the poke animation.
+      Shift-click the canvas for a special poke animation.
     </p>
 
     <p id="performance">Performance:</p>
