@@ -188,12 +188,12 @@ class Camera {
   }
 
   panLeft(alpha = this.panSpeed) {
-    this.yaw += (alpha * Math.PI) / 180.0;
+    this.yaw -= (alpha * Math.PI) / 180.0;
     this.updateAtFromAngles();
   }
 
   panRight(alpha = this.panSpeed) {
-    this.yaw -= (alpha * Math.PI) / 180.0;
+    this.yaw += (alpha * Math.PI) / 180.0;
     this.updateAtFromAngles();
   }
 
@@ -218,7 +218,8 @@ class Camera {
   }
 
   lookWithMouse(deltaX, deltaY) {
-    this.yaw -= deltaX * this.mouseSensitivity;
+    // Inverted so mouse movement feels like normal FPS camera movement
+    this.yaw += deltaX * this.mouseSensitivity;
     this.pitch -= deltaY * this.mouseSensitivity;
 
     if (this.pitch > 1.35) {
