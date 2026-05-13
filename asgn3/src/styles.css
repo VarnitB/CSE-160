@@ -85,6 +85,30 @@ h1 {
   margin: 5px 0;
 }
 
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 4px 4px 4px 0;
+  background: #22d3ee;
+  color: #111;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #67e8f9;
+}
+
+#restart-button {
+  display: none;
+  background: #facc15;
+}
+
+#restart-button:hover {
+  background: #fde047;
+}
+
 #message {
   margin-top: 18px;
   padding: 12px;

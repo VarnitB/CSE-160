@@ -21,7 +21,18 @@
 
         <div id="info-panel">
           <h2>Gold Block Hunt</h2>
-          <p>Find the gold block hidden in the world.</p>
+          <p id="mode-description">
+            Easy Mode: Find the randomly spawned gold block.
+          </p>
+
+          <div class="box">
+            <h3>Game Mode</h3>
+            <button onclick="startEasyMode()">Easy Mode</button>
+            <button onclick="startHardMode()">Hard Mode</button>
+            <button id="restart-button" onclick="restartCurrentMode()">
+              Restart
+            </button>
+          </div>
 
           <div class="box">
             <h3>Controls</h3>
@@ -29,14 +40,15 @@
             <p><b>Q/E</b>: Turn left/right</p>
             <p><b>Z/X</b>: Move up/down</p>
             <p><b>C/V</b>: Look up/down</p>
-            <p><b>Mouse click</b>: Lock mouse / FPS look (ESC to unlock)</p>
+            <p><b>Mouse click</b>: Lock mouse / FPS look</p>
+            <p><b>Esc</b>: Unlock mouse</p>
             <p><b>F</b>: Add block</p>
             <p><b>R</b>: Remove block</p>
           </div>
 
           <div class="box">
             <h3>Goal</h3>
-            <p>Reach the gold block to win.</p>
+            <p id="goal-text">Find the gold block to win.</p>
             <p>Click the game box once before moving.</p>
           </div>
 

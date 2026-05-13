@@ -11,7 +11,7 @@ let controls;
 let programInfo;
 
 let texturesLoaded = 0;
-const NUM_TEXTURES = 5;
+const NUM_TEXTURES = 6;
 
 let lastFrameTime = performance.now();
 let fpsDisplay;
@@ -44,6 +44,7 @@ const FSHADER_SOURCE = `
   uniform sampler2D u_Sampler2;
   uniform sampler2D u_Sampler3;
   uniform sampler2D u_Sampler4;
+  uniform sampler2D u_Sampler5;
 
   uniform int u_whichTexture;
   uniform float u_texColorWeight;
@@ -63,6 +64,8 @@ const FSHADER_SOURCE = `
       texColor = texture2D(u_Sampler3, v_UV);
     } else if (u_whichTexture == 4) {
       texColor = texture2D(u_Sampler4, v_UV);
+    } else if (u_whichTexture == 5) {
+      texColor = texture2D(u_Sampler5, v_UV);
     } else {
       texColor = u_FragColor;
     }
@@ -87,6 +90,8 @@ function main() {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.enable(gl.DEPTH_TEST);
 
+  updateModeUI();
+
   requestAnimationFrame(tick);
 }
 
@@ -98,7 +103,6 @@ function setupWebGL() {
     return;
   }
 
-  // false turns off WebGL debug mode, which helps FPS a lot
   gl = getWebGLContext(canvas, false);
 
   if (!gl) {
@@ -130,6 +134,7 @@ function connectVariablesToGLSL() {
     u_Sampler2: gl.getUniformLocation(gl.program, "u_Sampler2"),
     u_Sampler3: gl.getUniformLocation(gl.program, "u_Sampler3"),
     u_Sampler4: gl.getUniformLocation(gl.program, "u_Sampler4"),
+    u_Sampler5: gl.getUniformLocation(gl.program, "u_Sampler5"),
   };
 
   if (programInfo.a_Position < 0) {
@@ -159,6 +164,7 @@ function initTextures() {
   loadTexture("./textures/dirt.png", 2, programInfo.u_Sampler2);
   loadTexture("./textures/sky.png", 3, programInfo.u_Sampler3);
   loadTexture("./textures/goal.png", 4, programInfo.u_Sampler4);
+  loadTexture("./textures/wall2.png", 5, programInfo.u_Sampler5);
 }
 
 function loadTexture(src, textureUnit, samplerLocation) {
@@ -197,8 +203,8 @@ function sendTextureToGLSL(image, textureUnit, samplerLocation) {
   gl.texImage2D(
     gl.TEXTURE_2D,
     0,
-    gl.RGB,
-    gl.RGB,
+    gl.RGBA,
+    gl.RGBA,
     gl.UNSIGNED_BYTE,
     image
   );
@@ -210,6 +216,11 @@ function sendTextureToGLSL(image, textureUnit, samplerLocation) {
 
 function tick(now) {
   updateFPS(now);
+
+  if (controls) {
+    controls.update();
+  }
+
   renderScene();
   requestAnimationFrame(tick);
 }
@@ -244,17 +255,109 @@ function renderScene() {
 
   world.draw(gl, programInfo);
 
-  if (world.checkGoal(camera)) {
+  if (world.checkWin(camera)) {
     showWinMessage();
   }
 }
 
+function startEasyMode() {
+  if (!world) return;
+
+  world.startEasyMode();
+  hideRestartButton();
+  setMessage("Status: Easy Mode started. Find the gold block.");
+  updateModeUI();
+  renderScene();
+}
+
+function startHardMode() {
+  if (!world) return;
+
+  world.startHardMode();
+  hideRestartButton();
+  setMessage("Status: Hard Mode started. Find the darker wall block.");
+  updateModeUI();
+  renderScene();
+}
+
+function restartCurrentMode() {
+  if (!world) return;
+
+  world.restartCurrentMode();
+  hideRestartButton();
+
+  if (world.mode === "hard") {
+    setMessage("Status: Hard Mode restarted. Find the darker wall block.");
+  } else {
+    setMessage("Status: Easy Mode restarted. Find the gold block.");
+  }
+
+  updateModeUI();
+  renderScene();
+}
+
+function updateModeUI() {
+  const title = document.querySelector("#info-panel h2");
+  const description = document.getElementById("mode-description");
+  const goalText = document.getElementById("goal-text");
+
+  if (!world) return;
+
+  if (world.mode === "hard") {
+    if (title) title.textContent = "Hard Mode: Hidden Wall Hunt";
+    if (description) {
+      description.textContent =
+        "Hard Mode: One random wall block is lighter. Find it.";
+    }
+    if (goalText) {
+      goalText.textContent =
+        "Find the lighter wall block.";
+    }
+  } else {
+    if (title) title.textContent = "Easy Mode: Gold Block Hunt";
+    if (description) {
+      description.textContent =
+        "Easy Mode: Find the randomly spawned gold block.";
+    }
+    if (goalText) {
+      goalText.textContent = "Find the gold block to win.";
+    }
+  }
+}
+
 function showWinMessage() {
+  const restartButton = document.getElementById("restart-button");
+
+  if (world.mode === "hard") {
+    setMessage("Status: You found the lighter wall block! Hard Mode complete.");
+  } else {
+    setMessage("Status: You found the gold block! Easy Mode complete.");
+  }
+
+  if (restartButton) {
+    restartButton.style.display = "inline-block";
+  }
+}
+
+function hideRestartButton() {
+  const restartButton = document.getElementById("restart-button");
+
+  if (restartButton) {
+    restartButton.style.display = "none";
+  }
+}
+
+function setMessage(text) {
   const message = document.getElementById("message");
 
   if (message) {
-    message.textContent = "Status: You found the gold block! Mini-game complete.";
-    message.style.borderLeftColor = "#facc15";
+    message.textContent = text;
+
+    if (text.toLowerCase().includes("complete")) {
+      message.style.borderLeftColor = "#facc15";
+    } else {
+      message.style.borderLeftColor = "#22d3ee";
+    }
   }
 }
 

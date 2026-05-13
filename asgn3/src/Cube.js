@@ -1,5 +1,5 @@
 // Cube.js
-// Textured/color cube used for ground, sky, walls, and goal block
+// Textured/color cube used for ground, sky, walls, goal block, and hard-mode target
 
 class Cube {
   constructor() {
@@ -13,6 +13,7 @@ class Cube {
     // 2 = dirt
     // 3 = sky
     // 4 = goal/gold
+    // 5 = wall2 / hard-mode hidden target
     this.textureNum = -1;
 
     // 0.0 = only base color
@@ -24,7 +25,6 @@ class Cube {
     if (Cube.vertexBuffer) return;
 
     // Each vertex: x, y, z, u, v
-    // 36 vertices = 12 triangles = full cube
     const vertices = new Float32Array([
       // Front face
       0, 0, 1, 0, 0,
@@ -76,6 +76,7 @@ class Cube {
     ]);
 
     Cube.vertexBuffer = gl.createBuffer();
+
     if (!Cube.vertexBuffer) {
       console.log("Failed to create cube vertex buffer");
       return;
@@ -116,6 +117,7 @@ class Cube {
     gl.enableVertexAttribArray(programInfo.a_UV);
 
     gl.uniformMatrix4fv(programInfo.u_ModelMatrix, false, this.matrix.elements);
+
     gl.uniform4f(
       programInfo.u_FragColor,
       this.color[0],
@@ -123,6 +125,7 @@ class Cube {
       this.color[2],
       this.color[3]
     );
+
     gl.uniform1i(programInfo.u_whichTexture, this.textureNum);
     gl.uniform1f(programInfo.u_texColorWeight, this.texColorWeight);
 
