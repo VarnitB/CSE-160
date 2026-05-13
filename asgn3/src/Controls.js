@@ -25,7 +25,11 @@ class Controls {
       (event) => {
         const key = event.key.toLowerCase();
 
-        if (["w", "a", "s", "d", "q", "e", "z", "x", "f", "r"].includes(key)) {
+        if (
+          ["w", "a", "s", "d", "q", "e", "z", "x", "c", "v", "f", "r"].includes(
+            key
+          )
+        ) {
           event.preventDefault();
           this.keys[key] = true;
           this.updateStatus("Key pressed: " + key.toUpperCase());
@@ -45,17 +49,23 @@ class Controls {
           this.camera.moveRight();
           this.renderScene();
         } else if (key === "q") {
-          // swapped so Q turns left visually
+          // Q turns left visually
           this.camera.panRight();
           this.renderScene();
         } else if (key === "e") {
-          // swapped so E turns right visually
+          // E turns right visually
           this.camera.panLeft();
           this.renderScene();
         } else if (key === "z") {
-          this.camera.lookUp();
+          this.camera.moveUp();
           this.renderScene();
         } else if (key === "x") {
+          this.camera.moveDown();
+          this.renderScene();
+        } else if (key === "c") {
+          this.camera.lookUp();
+          this.renderScene();
+        } else if (key === "v") {
           this.camera.lookDown();
           this.renderScene();
         } else if (key === "f") {
@@ -74,7 +84,11 @@ class Controls {
       (event) => {
         const key = event.key.toLowerCase();
 
-        if (["w", "a", "s", "d", "q", "e", "z", "x", "f", "r"].includes(key)) {
+        if (
+          ["w", "a", "s", "d", "q", "e", "z", "x", "c", "v", "f", "r"].includes(
+            key
+          )
+        ) {
           event.preventDefault();
           this.keys[key] = false;
         }
@@ -145,11 +159,21 @@ class Controls {
     }
 
     if (this.keys["z"]) {
-      this.camera.lookUp();
+      this.camera.moveUp();
       moved = true;
     }
 
     if (this.keys["x"]) {
+      this.camera.moveDown();
+      moved = true;
+    }
+
+    if (this.keys["c"]) {
+      this.camera.lookUp();
+      moved = true;
+    }
+
+    if (this.keys["v"]) {
       this.camera.lookDown();
       moved = true;
     }

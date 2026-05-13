@@ -11,6 +11,7 @@ class Camera {
     this.up = new Vector3([0, 1, 0]);
 
     this.speed = 0.18;
+    this.verticalSpeed = 0.18;
     this.panSpeed = 3;
     this.lookSpeed = 0.08;
 
@@ -157,6 +158,27 @@ class Camera {
 
     this.at.elements[0] += dx;
     this.at.elements[2] += dz;
+
+    this.updateViewMatrix();
+  }
+
+  moveUp() {
+    this.eye.elements[1] += this.verticalSpeed;
+    this.at.elements[1] += this.verticalSpeed;
+
+    this.updateViewMatrix();
+  }
+
+  moveDown() {
+    this.eye.elements[1] -= this.verticalSpeed;
+    this.at.elements[1] -= this.verticalSpeed;
+
+    // Optional floor limit so you don't go way underground
+    if (this.eye.elements[1] < 0.5) {
+      const diff = 0.5 - this.eye.elements[1];
+      this.eye.elements[1] += diff;
+      this.at.elements[1] += diff;
+    }
 
     this.updateViewMatrix();
   }
