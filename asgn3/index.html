@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Assignment 3 - Virtual World</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+
+  <body>
+    <div id="ui">
+      <h2>Virtual World</h2>
+      <p>
+        W/A/S/D = move &nbsp; | &nbsp; Q/E = turn &nbsp; | &nbsp; Mouse drag =
+        look around
+      </p>
+      <p>F = add block &nbsp; | &nbsp; R = remove block</p>
+    </div>
+
+    <canvas id="webgl" width="800" height="600">
+      Please use a browser that supports canvas.
+    </canvas>
+
+    <!-- Matsuda helper libraries -->
+    <script src="./lib/webgl-utils.js"></script>
+    <script src="./lib/webgl-debug.js"></script>
+    <script src="./lib/cuon-utils.js"></script>
+    <script src="./lib/cuon-matrix.js"></script>
+
+    <!-- Main project file -->
+    <script src="./src/index.js"></script>
+  </body>
+</html>
