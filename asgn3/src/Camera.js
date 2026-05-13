@@ -5,17 +5,19 @@ class Camera {
   constructor(canvas) {
     this.fov = 60;
 
+    // Start near a path, not inside a wall
     this.eye = new Vector3([-14, 2, -14]);
     this.at = new Vector3([-13, 2, -14]);
     this.up = new Vector3([0, 1, 0]);
 
-    this.speed = 0.35;
-    this.panSpeed = 5;
+    this.speed = 0.18;
+    this.panSpeed = 3;
 
     this.viewMatrix = new Matrix4();
     this.projectionMatrix = new Matrix4();
 
     this.canvas = canvas;
+
     this.updateViewMatrix();
     this.updateProjectionMatrix();
   }
@@ -40,32 +42,58 @@ class Camera {
   }
 
   getForwardVector() {
-    const f = new Vector3();
-    f.set(this.at);
-    f.sub(this.eye);
-    f.normalize();
-    return f;
+    const ex = this.eye.elements[0];
+    const ey = this.eye.elements[1];
+    const ez = this.eye.elements[2];
+
+    const ax = this.at.elements[0];
+    const ay = this.at.elements[1];
+    const az = this.at.elements[2];
+
+    let fx = ax - ex;
+    let fy = ay - ey;
+    let fz = az - ez;
+
+    const length = Math.sqrt(fx * fx + fy * fy + fz * fz);
+
+    if (length === 0) {
+      return new Vector3([0, 0, -1]);
+    }
+
+    fx /= length;
+    fy /= length;
+    fz /= length;
+
+    return new Vector3([fx, fy, fz]);
   }
 
   moveForward() {
     const f = this.getForwardVector();
-    f.mul(this.speed);
 
-    this.eye.add(f);
-    this.at.add(f);
+    const dx = f.elements[0] * this.speed;
+    const dz = f.elements[2] * this.speed;
+
+    // Keep movement horizontal
+    this.eye.elements[0] += dx;
+    this.eye.elements[2] += dz;
+
+    this.at.elements[0] += dx;
+    this.at.elements[2] += dz;
 
     this.updateViewMatrix();
   }
 
   moveBackwards() {
-    const b = new Vector3();
-    b.set(this.eye);
-    b.sub(this.at);
-    b.normalize();
-    b.mul(this.speed);
+    const f = this.getForwardVector();
 
-    this.eye.add(b);
-    this.at.add(b);
+    const dx = f.elements[0] * this.speed;
+    const dz = f.elements[2] * this.speed;
+
+    this.eye.elements[0] -= dx;
+    this.eye.elements[2] -= dz;
+
+    this.at.elements[0] -= dx;
+    this.at.elements[2] -= dz;
 
     this.updateViewMatrix();
   }
@@ -73,12 +101,26 @@ class Camera {
   moveLeft() {
     const f = this.getForwardVector();
 
-    const s = Vector3.cross(this.up, f);
-    s.normalize();
-    s.mul(this.speed);
+    // Left vector = up x forward
+    let sx = this.up.elements[1] * f.elements[2] - this.up.elements[2] * f.elements[1];
+    let sy = this.up.elements[2] * f.elements[0] - this.up.elements[0] * f.elements[2];
+    let sz = this.up.elements[0] * f.elements[1] - this.up.elements[1] * f.elements[0];
 
-    this.eye.add(s);
-    this.at.add(s);
+    const length = Math.sqrt(sx * sx + sy * sy + sz * sz);
+
+    if (length !== 0) {
+      sx /= length;
+      sz /= length;
+    }
+
+    const dx = sx * this.speed;
+    const dz = sz * this.speed;
+
+    this.eye.elements[0] += dx;
+    this.eye.elements[2] += dz;
+
+    this.at.elements[0] += dx;
+    this.at.elements[2] += dz;
 
     this.updateViewMatrix();
   }
@@ -86,12 +128,26 @@ class Camera {
   moveRight() {
     const f = this.getForwardVector();
 
-    const s = Vector3.cross(f, this.up);
-    s.normalize();
-    s.mul(this.speed);
+    // Right vector = forward x up
+    let sx = f.elements[1] * this.up.elements[2] - f.elements[2] * this.up.elements[1];
+    let sy = f.elements[2] * this.up.elements[0] - f.elements[0] * this.up.elements[2];
+    let sz = f.elements[0] * this.up.elements[1] - f.elements[1] * this.up.elements[0];
 
-    this.eye.add(s);
-    this.at.add(s);
+    const length = Math.sqrt(sx * sx + sy * sy + sz * sz);
+
+    if (length !== 0) {
+      sx /= length;
+      sz /= length;
+    }
+
+    const dx = sx * this.speed;
+    const dz = sz * this.speed;
+
+    this.eye.elements[0] += dx;
+    this.eye.elements[2] += dz;
+
+    this.at.elements[0] += dx;
+    this.at.elements[2] += dz;
 
     this.updateViewMatrix();
   }
@@ -99,18 +155,20 @@ class Camera {
   panLeft(alpha = this.panSpeed) {
     const f = this.getForwardVector();
 
-    const rotationMatrix = new Matrix4();
-    rotationMatrix.setRotate(
-      alpha,
-      this.up.elements[0],
-      this.up.elements[1],
-      this.up.elements[2]
-    );
+    const angle = (alpha * Math.PI) / 180.0;
+    const cosA = Math.cos(angle);
+    const sinA = Math.sin(angle);
 
-    const fPrime = rotationMatrix.multiplyVector3(f);
+    const fx = f.elements[0];
+    const fz = f.elements[2];
 
-    this.at.set(this.eye);
-    this.at.add(fPrime);
+    // Rotate around y-axis
+    const newFx = fx * cosA - fz * sinA;
+    const newFz = fx * sinA + fz * cosA;
+
+    this.at.elements[0] = this.eye.elements[0] + newFx;
+    this.at.elements[1] = this.eye.elements[1];
+    this.at.elements[2] = this.eye.elements[2] + newFz;
 
     this.updateViewMatrix();
   }
@@ -120,8 +178,8 @@ class Camera {
   }
 
   panByMouse(deltaX) {
-    const sensitivity = 0.25;
-    this.panLeft(-deltaX * sensitivity);
+    const sensitivity = 0.18;
+    this.panRight(deltaX * sensitivity);
   }
 
   getPosition() {
