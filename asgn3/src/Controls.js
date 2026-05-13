@@ -1,5 +1,5 @@
 // Controls.js
-// Handles keyboard movement, mouse camera rotation, and add/delete blocks
+// Handles keyboard movement, mouse pointer-lock camera rotation, and add/delete blocks
 
 class Controls {
   constructor(canvas, camera, world, renderScene) {
@@ -9,8 +9,7 @@ class Controls {
     this.renderScene = renderScene;
 
     this.keys = {};
-    this.isDragging = false;
-    this.lastMouseX = 0;
+    this.pointerLocked = false;
 
     this.canvas.setAttribute("tabindex", "0");
     this.canvas.focus();
@@ -35,7 +34,6 @@ class Controls {
           this.updateStatus("Key pressed: " + key.toUpperCase());
         }
 
-        // Move immediately on key press
         if (key === "w") {
           this.camera.moveForward();
           this.renderScene();
@@ -49,12 +47,10 @@ class Controls {
           this.camera.moveRight();
           this.renderScene();
         } else if (key === "q") {
-          // Q turns left visually
-          this.camera.panRight();
+          this.camera.panLeft();
           this.renderScene();
         } else if (key === "e") {
-          // E turns right visually
-          this.camera.panLeft();
+          this.camera.panRight();
           this.renderScene();
         } else if (key === "z") {
           this.camera.moveUp();
@@ -100,27 +96,31 @@ class Controls {
   initMouseControls() {
     this.canvas.addEventListener("click", () => {
       this.canvas.focus();
-      this.updateStatus("Canvas focused. Controls active.");
+
+      if (this.canvas.requestPointerLock) {
+        this.canvas.requestPointerLock();
+      }
+
+      this.updateStatus("Mouse locked. Press ESC to unlock.");
     });
 
-    this.canvas.addEventListener("mousedown", (event) => {
-      this.canvas.focus();
-      this.isDragging = true;
-      this.lastMouseX = event.clientX;
-      this.updateStatus("Mouse look active.");
+    document.addEventListener("pointerlockchange", () => {
+      this.pointerLocked = document.pointerLockElement === this.canvas;
+
+      if (this.pointerLocked) {
+        this.updateStatus("Mouse locked. Press ESC to unlock.");
+      } else {
+        this.updateStatus("Mouse unlocked.");
+      }
     });
 
-    window.addEventListener("mouseup", () => {
-      this.isDragging = false;
-    });
+    document.addEventListener("mousemove", (event) => {
+      if (!this.pointerLocked) return;
 
-    this.canvas.addEventListener("mousemove", (event) => {
-      if (!this.isDragging) return;
+      const deltaX = event.movementX || 0;
+      const deltaY = event.movementY || 0;
 
-      const deltaX = event.clientX - this.lastMouseX;
-      this.lastMouseX = event.clientX;
-
-      this.camera.panByMouse(deltaX);
+      this.camera.lookWithMouse(deltaX, deltaY);
       this.renderScene();
     });
   }
@@ -149,12 +149,12 @@ class Controls {
     }
 
     if (this.keys["q"]) {
-      this.camera.panRight();
+      this.camera.panLeft();
       moved = true;
     }
 
     if (this.keys["e"]) {
-      this.camera.panLeft();
+      this.camera.panRight();
       moved = true;
     }
 

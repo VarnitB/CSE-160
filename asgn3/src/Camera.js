@@ -5,21 +5,27 @@ class Camera {
   constructor(canvas) {
     this.fov = 60;
 
-    // Start near a path, not inside a wall
     this.eye = new Vector3([-14, 2, -14]);
     this.at = new Vector3([-13, 2, -14]);
     this.up = new Vector3([0, 1, 0]);
 
     this.speed = 0.18;
     this.verticalSpeed = 0.18;
+
+    // FPS-style camera angles
+    this.yaw = 0; // left/right
+    this.pitch = 0; // up/down
+
     this.panSpeed = 3;
     this.lookSpeed = 0.08;
+    this.mouseSensitivity = 0.0025;
 
     this.viewMatrix = new Matrix4();
     this.projectionMatrix = new Matrix4();
 
     this.canvas = canvas;
 
+    this.updateAtFromAngles();
     this.updateViewMatrix();
     this.updateProjectionMatrix();
   }
@@ -43,6 +49,20 @@ class Camera {
     this.projectionMatrix.setPerspective(this.fov, aspect, 0.1, 1000);
   }
 
+  updateAtFromAngles() {
+    const cosPitch = Math.cos(this.pitch);
+
+    const fx = Math.cos(this.yaw) * cosPitch;
+    const fy = Math.sin(this.pitch);
+    const fz = Math.sin(this.yaw) * cosPitch;
+
+    this.at.elements[0] = this.eye.elements[0] + fx;
+    this.at.elements[1] = this.eye.elements[1] + fy;
+    this.at.elements[2] = this.eye.elements[2] + fz;
+
+    this.updateViewMatrix();
+  }
+
   getForwardVector() {
     const ex = this.eye.elements[0];
     const ey = this.eye.elements[1];
@@ -59,7 +79,7 @@ class Camera {
     const length = Math.sqrt(fx * fx + fy * fy + fz * fz);
 
     if (length === 0) {
-      return new Vector3([0, 0, -1]);
+      return new Vector3([1, 0, 0]);
     }
 
     fx /= length;
@@ -69,12 +89,29 @@ class Camera {
     return new Vector3([fx, fy, fz]);
   }
 
-  moveForward() {
+  getHorizontalForwardVector() {
     const f = this.getForwardVector();
 
-    // Move horizontally only, like walking
-    const dx = f.elements[0] * this.speed;
-    const dz = f.elements[2] * this.speed;
+    let fx = f.elements[0];
+    let fz = f.elements[2];
+
+    const length = Math.sqrt(fx * fx + fz * fz);
+
+    if (length === 0) {
+      return { x: 1, z: 0 };
+    }
+
+    fx /= length;
+    fz /= length;
+
+    return { x: fx, z: fz };
+  }
+
+  moveForward() {
+    const f = this.getHorizontalForwardVector();
+
+    const dx = f.x * this.speed;
+    const dz = f.z * this.speed;
 
     this.eye.elements[0] += dx;
     this.eye.elements[2] += dz;
@@ -86,10 +123,10 @@ class Camera {
   }
 
   moveBackwards() {
-    const f = this.getForwardVector();
+    const f = this.getHorizontalForwardVector();
 
-    const dx = f.elements[0] * this.speed;
-    const dz = f.elements[2] * this.speed;
+    const dx = f.x * this.speed;
+    const dz = f.z * this.speed;
 
     this.eye.elements[0] -= dx;
     this.eye.elements[2] -= dz;
@@ -101,63 +138,31 @@ class Camera {
   }
 
   moveLeft() {
-    const f = this.getForwardVector();
+    const f = this.getHorizontalForwardVector();
 
-    // Left vector = up x forward
-    let sx =
-      this.up.elements[1] * f.elements[2] -
-      this.up.elements[2] * f.elements[1];
+    const leftX = -f.z;
+    const leftZ = f.x;
 
-    let sz =
-      this.up.elements[0] * f.elements[1] -
-      this.up.elements[1] * f.elements[0];
+    this.eye.elements[0] += leftX * this.speed;
+    this.eye.elements[2] += leftZ * this.speed;
 
-    const length = Math.sqrt(sx * sx + sz * sz);
-
-    if (length !== 0) {
-      sx /= length;
-      sz /= length;
-    }
-
-    const dx = sx * this.speed;
-    const dz = sz * this.speed;
-
-    this.eye.elements[0] += dx;
-    this.eye.elements[2] += dz;
-
-    this.at.elements[0] += dx;
-    this.at.elements[2] += dz;
+    this.at.elements[0] += leftX * this.speed;
+    this.at.elements[2] += leftZ * this.speed;
 
     this.updateViewMatrix();
   }
 
   moveRight() {
-    const f = this.getForwardVector();
+    const f = this.getHorizontalForwardVector();
 
-    // Right vector = forward x up
-    let sx =
-      f.elements[1] * this.up.elements[2] -
-      f.elements[2] * this.up.elements[1];
+    const rightX = f.z;
+    const rightZ = -f.x;
 
-    let sz =
-      f.elements[0] * this.up.elements[1] -
-      f.elements[1] * this.up.elements[0];
+    this.eye.elements[0] += rightX * this.speed;
+    this.eye.elements[2] += rightZ * this.speed;
 
-    const length = Math.sqrt(sx * sx + sz * sz);
-
-    if (length !== 0) {
-      sx /= length;
-      sz /= length;
-    }
-
-    const dx = sx * this.speed;
-    const dz = sz * this.speed;
-
-    this.eye.elements[0] += dx;
-    this.eye.elements[2] += dz;
-
-    this.at.elements[0] += dx;
-    this.at.elements[2] += dz;
+    this.at.elements[0] += rightX * this.speed;
+    this.at.elements[2] += rightZ * this.speed;
 
     this.updateViewMatrix();
   }
@@ -173,7 +178,6 @@ class Camera {
     this.eye.elements[1] -= this.verticalSpeed;
     this.at.elements[1] -= this.verticalSpeed;
 
-    // Optional floor limit so you don't go way underground
     if (this.eye.elements[1] < 0.5) {
       const diff = 0.5 - this.eye.elements[1];
       this.eye.elements[1] += diff;
@@ -184,66 +188,48 @@ class Camera {
   }
 
   panLeft(alpha = this.panSpeed) {
-    const f = this.getForwardVector();
-
-    const angle = (alpha * Math.PI) / 180.0;
-    const cosA = Math.cos(angle);
-    const sinA = Math.sin(angle);
-
-    const fx = f.elements[0];
-    const fy = f.elements[1];
-    const fz = f.elements[2];
-
-    // Rotate around y-axis
-    const newFx = fx * cosA - fz * sinA;
-    const newFz = fx * sinA + fz * cosA;
-
-    this.at.elements[0] = this.eye.elements[0] + newFx;
-    this.at.elements[1] = this.eye.elements[1] + fy;
-    this.at.elements[2] = this.eye.elements[2] + newFz;
-
-    this.updateViewMatrix();
+    this.yaw += (alpha * Math.PI) / 180.0;
+    this.updateAtFromAngles();
   }
 
   panRight(alpha = this.panSpeed) {
-    this.panLeft(-alpha);
+    this.yaw -= (alpha * Math.PI) / 180.0;
+    this.updateAtFromAngles();
   }
 
   lookUp() {
-    const f = this.getForwardVector();
+    this.pitch += this.lookSpeed;
 
-    let newY = f.elements[1] + this.lookSpeed;
-
-    // Limit so camera does not flip
-    if (newY > 0.95) {
-      newY = 0.95;
+    if (this.pitch > 1.35) {
+      this.pitch = 1.35;
     }
 
-    this.at.elements[1] = this.eye.elements[1] + newY;
-
-    this.updateViewMatrix();
+    this.updateAtFromAngles();
   }
 
   lookDown() {
-    const f = this.getForwardVector();
+    this.pitch -= this.lookSpeed;
 
-    let newY = f.elements[1] - this.lookSpeed;
-
-    // Limit so camera does not flip
-    if (newY < -0.95) {
-      newY = -0.95;
+    if (this.pitch < -1.35) {
+      this.pitch = -1.35;
     }
 
-    this.at.elements[1] = this.eye.elements[1] + newY;
-
-    this.updateViewMatrix();
+    this.updateAtFromAngles();
   }
 
-  panByMouse(deltaX) {
-    const sensitivity = 0.18;
+  lookWithMouse(deltaX, deltaY) {
+    this.yaw -= deltaX * this.mouseSensitivity;
+    this.pitch -= deltaY * this.mouseSensitivity;
 
-    // Mouse drag left/right only
-    this.panRight(deltaX * sensitivity);
+    if (this.pitch > 1.35) {
+      this.pitch = 1.35;
+    }
+
+    if (this.pitch < -1.35) {
+      this.pitch = -1.35;
+    }
+
+    this.updateAtFromAngles();
   }
 
   getPosition() {
