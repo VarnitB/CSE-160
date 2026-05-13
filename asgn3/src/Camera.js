@@ -140,8 +140,8 @@ class Camera {
   moveLeft() {
     const f = this.getHorizontalForwardVector();
 
-    const leftX = -f.z;
-    const leftZ = f.x;
+    const leftX = f.z;
+    const leftZ = -f.x;
 
     this.eye.elements[0] += leftX * this.speed;
     this.eye.elements[2] += leftZ * this.speed;
@@ -155,8 +155,8 @@ class Camera {
   moveRight() {
     const f = this.getHorizontalForwardVector();
 
-    const rightX = f.z;
-    const rightZ = -f.x;
+    const rightX = -f.z;
+    const rightZ = f.x;
 
     this.eye.elements[0] += rightX * this.speed;
     this.eye.elements[2] += rightZ * this.speed;
@@ -218,7 +218,6 @@ class Camera {
   }
 
   lookWithMouse(deltaX, deltaY) {
-    // Inverted so mouse movement feels like normal FPS camera movement
     this.yaw += deltaX * this.mouseSensitivity;
     this.pitch -= deltaY * this.mouseSensitivity;
 
