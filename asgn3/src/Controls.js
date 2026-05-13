@@ -8,12 +8,10 @@ class Controls {
     this.world = world;
     this.renderScene = renderScene;
 
+    this.keys = {};
     this.isDragging = false;
     this.lastMouseX = 0;
 
-    this.keys = {};
-
-    // Make sure canvas can receive focus
     this.canvas.setAttribute("tabindex", "0");
     this.canvas.focus();
 
@@ -22,71 +20,58 @@ class Controls {
   }
 
   initKeyboardControls() {
-    window.addEventListener("keydown", (event) => {
-      const key = event.key.toLowerCase();
+    window.addEventListener(
+      "keydown",
+      (event) => {
+        const key = event.key.toLowerCase();
 
-      // Prevent browser shortcuts/scrolling from interfering
-      if (["w", "a", "s", "d", "q", "e", "f", "r"].includes(key)) {
-        event.preventDefault();
-      }
+        if (["w", "a", "s", "d", "q", "e", "f", "r"].includes(key)) {
+          event.preventDefault();
+          this.keys[key] = true;
+          this.updateStatus("Key pressed: " + key.toUpperCase());
+        }
 
-      switch (key) {
-        case "w":
-          this.camera.moveForward();
-          break;
-
-        case "s":
-          this.camera.moveBackwards();
-          break;
-
-        case "a":
-          this.camera.moveLeft();
-          break;
-
-        case "d":
-          this.camera.moveRight();
-          break;
-
-        case "q":
-          this.camera.panLeft();
-          break;
-
-        case "e":
-          this.camera.panRight();
-          break;
-
-        case "f":
+        if (key === "f") {
           this.world.addBlockInFront(this.camera);
-          break;
+          this.renderScene();
+        }
 
-        case "r":
+        if (key === "r") {
           this.world.removeBlockInFront(this.camera);
-          break;
+          this.renderScene();
+        }
+      },
+      true
+    );
 
-        default:
-          return;
-      }
+    window.addEventListener(
+      "keyup",
+      (event) => {
+        const key = event.key.toLowerCase();
 
-      this.renderScene();
-    });
+        if (["w", "a", "s", "d", "q", "e", "f", "r"].includes(key)) {
+          event.preventDefault();
+          this.keys[key] = false;
+        }
+      },
+      true
+    );
   }
 
   initMouseControls() {
     this.canvas.addEventListener("click", () => {
       this.canvas.focus();
+      this.updateStatus("Canvas focused. Controls active.");
     });
 
     this.canvas.addEventListener("mousedown", (event) => {
       this.canvas.focus();
       this.isDragging = true;
       this.lastMouseX = event.clientX;
+      this.updateStatus("Mouse look active.");
     });
 
     window.addEventListener("mouseup", () => {
-      this.isDragging = false;
-    });
-
-    this.canvas.addEventListener("mouseleave", () => {
       this.isDragging = false;
     });
 
@@ -99,5 +84,50 @@ class Controls {
       this.camera.panByMouse(deltaX);
       this.renderScene();
     });
+  }
+
+  update() {
+    let moved = false;
+
+    if (this.keys["w"]) {
+      this.camera.moveForward();
+      moved = true;
+    }
+
+    if (this.keys["s"]) {
+      this.camera.moveBackwards();
+      moved = true;
+    }
+
+    if (this.keys["a"]) {
+      this.camera.moveLeft();
+      moved = true;
+    }
+
+    if (this.keys["d"]) {
+      this.camera.moveRight();
+      moved = true;
+    }
+
+    if (this.keys["q"]) {
+      this.camera.panLeft();
+      moved = true;
+    }
+
+    if (this.keys["e"]) {
+      this.camera.panRight();
+      moved = true;
+    }
+
+    if (moved) {
+      this.renderScene();
+    }
+  }
+
+  updateStatus(text) {
+    const message = document.getElementById("message");
+    if (message) {
+      message.textContent = "Status: " + text;
+    }
   }
 }
