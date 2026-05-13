@@ -31,12 +31,29 @@ class Controls {
           this.updateStatus("Key pressed: " + key.toUpperCase());
         }
 
-        if (key === "f") {
+        // Move immediately on key press
+        if (key === "w") {
+          this.camera.moveForward();
+          this.renderScene();
+        } else if (key === "s") {
+          this.camera.moveBackwards();
+          this.renderScene();
+        } else if (key === "a") {
+          this.camera.moveLeft();
+          this.renderScene();
+        } else if (key === "d") {
+          this.camera.moveRight();
+          this.renderScene();
+        } else if (key === "q") {
+          this.camera.panLeft();
+          this.renderScene();
+        } else if (key === "e") {
+          this.camera.panRight();
+          this.renderScene();
+        } else if (key === "f") {
           this.world.addBlockInFront(this.camera);
           this.renderScene();
-        }
-
-        if (key === "r") {
+        } else if (key === "r") {
           this.world.removeBlockInFront(this.camera);
           this.renderScene();
         }
@@ -126,6 +143,7 @@ class Controls {
 
   updateStatus(text) {
     const message = document.getElementById("message");
+
     if (message) {
       message.textContent = "Status: " + text;
     }
