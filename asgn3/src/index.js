@@ -13,6 +13,9 @@ let programInfo;
 let texturesLoaded = 0;
 const NUM_TEXTURES = 5;
 
+let lastFrameTime = performance.now();
+let fpsDisplay;
+
 // Vertex shader
 const VSHADER_SOURCE = `
   attribute vec4 a_Position;
@@ -71,6 +74,8 @@ function main() {
   setupWebGL();
   connectVariablesToGLSL();
 
+  fpsDisplay = document.getElementById("fps");
+
   camera = new Camera(canvas);
   world = new World();
 
@@ -81,7 +86,7 @@ function main() {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.enable(gl.DEPTH_TEST);
 
-  renderScene();
+  requestAnimationFrame(tick);
 }
 
 function setupWebGL() {
@@ -187,9 +192,22 @@ function sendTextureToGLSL(image, textureUnit, samplerLocation) {
   gl.uniform1i(samplerLocation, textureUnit);
 
   texturesLoaded++;
+}
 
-  if (texturesLoaded === NUM_TEXTURES) {
-    renderScene();
+function tick(now) {
+  updateFPS(now);
+  renderScene();
+  requestAnimationFrame(tick);
+}
+
+function updateFPS(now) {
+  const delta = now - lastFrameTime;
+  lastFrameTime = now;
+
+  const fps = Math.round(1000 / delta);
+
+  if (fpsDisplay) {
+    fpsDisplay.textContent = "FPS: " + fps;
   }
 }
 
@@ -226,7 +244,10 @@ function showWinMessage() {
     <h2>You found the gold block!</h2>
     <p>Mini-game complete.</p>
     <p>W/A/S/D = move | Q/E = turn | F/R = add/remove blocks</p>
+    <p id="fps">FPS: --</p>
   `;
+
+  fpsDisplay = document.getElementById("fps");
 }
 
 window.onload = main;

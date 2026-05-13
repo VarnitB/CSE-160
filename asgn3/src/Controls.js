@@ -11,13 +11,26 @@ class Controls {
     this.isDragging = false;
     this.lastMouseX = 0;
 
+    this.keys = {};
+
+    // Make sure canvas can receive focus
+    this.canvas.setAttribute("tabindex", "0");
+    this.canvas.focus();
+
     this.initKeyboardControls();
     this.initMouseControls();
   }
 
   initKeyboardControls() {
-    document.onkeydown = (event) => {
-      switch (event.key.toLowerCase()) {
+    window.addEventListener("keydown", (event) => {
+      const key = event.key.toLowerCase();
+
+      // Prevent browser shortcuts/scrolling from interfering
+      if (["w", "a", "s", "d", "q", "e", "f", "r"].includes(key)) {
+        event.preventDefault();
+      }
+
+      switch (key) {
         case "w":
           this.camera.moveForward();
           break;
@@ -55,24 +68,29 @@ class Controls {
       }
 
       this.renderScene();
-    };
+    });
   }
 
   initMouseControls() {
-    this.canvas.onmousedown = (event) => {
+    this.canvas.addEventListener("click", () => {
+      this.canvas.focus();
+    });
+
+    this.canvas.addEventListener("mousedown", (event) => {
+      this.canvas.focus();
       this.isDragging = true;
       this.lastMouseX = event.clientX;
-    };
+    });
 
-    this.canvas.onmouseup = () => {
+    window.addEventListener("mouseup", () => {
       this.isDragging = false;
-    };
+    });
 
-    this.canvas.onmouseleave = () => {
+    this.canvas.addEventListener("mouseleave", () => {
       this.isDragging = false;
-    };
+    });
 
-    this.canvas.onmousemove = (event) => {
+    this.canvas.addEventListener("mousemove", (event) => {
       if (!this.isDragging) return;
 
       const deltaX = event.clientX - this.lastMouseX;
@@ -80,6 +98,6 @@ class Controls {
 
       this.camera.panByMouse(deltaX);
       this.renderScene();
-    };
+    });
   }
 }
