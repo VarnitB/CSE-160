@@ -38,6 +38,7 @@ const FSHADER_SOURCE = `
   precision mediump float;
 
   uniform vec4 u_FragColor;
+
   uniform sampler2D u_Sampler0;
   uniform sampler2D u_Sampler1;
   uniform sampler2D u_Sampler2;
@@ -97,7 +98,8 @@ function setupWebGL() {
     return;
   }
 
-  gl = getWebGLContext(canvas);
+  // false turns off WebGL debug mode, which helps FPS a lot
+  gl = getWebGLContext(canvas, false);
 
   if (!gl) {
     console.log("Failed to get WebGL context");
@@ -136,6 +138,18 @@ function connectVariablesToGLSL() {
 
   if (programInfo.a_UV < 0) {
     console.log("Failed to get a_UV");
+  }
+
+  if (!programInfo.u_ModelMatrix) {
+    console.log("Failed to get u_ModelMatrix");
+  }
+
+  if (!programInfo.u_ViewMatrix) {
+    console.log("Failed to get u_ViewMatrix");
+  }
+
+  if (!programInfo.u_ProjectionMatrix) {
+    console.log("Failed to get u_ProjectionMatrix");
   }
 }
 
@@ -236,18 +250,12 @@ function renderScene() {
 }
 
 function showWinMessage() {
-  const ui = document.getElementById("ui");
+  const message = document.getElementById("message");
 
-  if (!ui) return;
-
-  ui.innerHTML = `
-    <h2>You found the gold block!</h2>
-    <p>Mini-game complete.</p>
-    <p>W/A/S/D = move | Q/E = turn | F/R = add/remove blocks</p>
-    <p id="fps">FPS: --</p>
-  `;
-
-  fpsDisplay = document.getElementById("fps");
+  if (message) {
+    message.textContent = "Status: You found the gold block! Mini-game complete.";
+    message.style.borderLeftColor = "#facc15";
+  }
 }
 
 window.onload = main;

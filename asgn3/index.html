@@ -7,20 +7,41 @@
   </head>
 
   <body>
-    <div id="ui">
-      <h2>Virtual World</h2>
-      <p>
-        W/A/S/D = move &nbsp; | &nbsp; Q/E = turn &nbsp; | &nbsp; Mouse drag =
-        look around
-      </p>
-      <p>F = add block &nbsp; | &nbsp; R = remove block</p>
-      <p>Find the gold block to win.</p>
-      <p id="fps">FPS: --</p>
-    </div>
+    <div id="page">
+      <h1>Assignment 3: Virtual World</h1>
 
-    <canvas id="webgl" width="800" height="600" tabindex="0">
-      Please use a browser that supports canvas.
-    </canvas>
+      <div id="main-layout">
+        <div id="game-panel">
+          <canvas id="webgl" width="800" height="500" tabindex="0">
+            Please use a browser that supports canvas.
+          </canvas>
+
+          <div id="fps">FPS: --</div>
+        </div>
+
+        <div id="info-panel">
+          <h2>Gold Block Hunt</h2>
+          <p>Find the gold block hidden in the world.</p>
+
+          <div class="box">
+            <h3>Controls</h3>
+            <p><b>W/A/S/D</b>: Move around</p>
+            <p><b>Q/E</b>: Turn left/right</p>
+            <p><b>Mouse drag</b>: Look around</p>
+            <p><b>F</b>: Add block</p>
+            <p><b>R</b>: Remove block</p>
+          </div>
+
+          <div class="box">
+            <h3>Goal</h3>
+            <p>Reach the gold block to win.</p>
+            <p>Click the game box once before moving.</p>
+          </div>
+
+          <div id="message">Status: Exploring...</div>
+        </div>
+      </div>
+    </div>
 
     <!-- Matsuda helper libraries -->
     <script src="./lib/webgl-utils.js"></script>
