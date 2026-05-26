@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Assignment 4 - Lighting</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+
+  <body>
+    <div id="page">
+      <h1>Assignment 4: Lighting with Phong Shader</h1>
+
+      <div id="main-layout">
+        <div id="game-panel">
+          <canvas id="webgl" width="800" height="500" tabindex="0">
+            Please use a browser that supports canvas.
+          </canvas>
+
+          <div id="fps">FPS: --</div>
+        </div>
+
+        <div id="info-panel">
+          <h2>Lighting Controls</h2>
+
+          <div class="box">
+            <h3>Required Toggles</h3>
+            <button onclick="toggleLighting()">Lighting On/Off</button>
+            <button onclick="toggleNormals()">Normal View On/Off</button>
+            <button onclick="togglePointLight()">Point Light On/Off</button>
+            <button onclick="toggleSpotLight()">Spot Light On/Off</button>
+          </div>
+
+          <div class="box">
+            <h3>Point Light Position</h3>
+
+            <label>X: <span id="lightXText">0</span></label>
+            <input
+              id="lightXSlider"
+              type="range"
+              min="-15"
+              max="15"
+              value="0"
+              step="0.1"
+              oninput="updateLightSlider()"
+            />
+
+            <label>Y: <span id="lightYText">5</span></label>
+            <input
+              id="lightYSlider"
+              type="range"
+              min="1"
+              max="15"
+              value="5"
+              step="0.1"
+              oninput="updateLightSlider()"
+            />
+
+            <label>Z: <span id="lightZText">0</span></label>
+            <input
+              id="lightZSlider"
+              type="range"
+              min="-15"
+              max="15"
+              value="0"
+              step="0.1"
+              oninput="updateLightSlider()"
+            />
+          </div>
+
+          <div class="box">
+            <h3>Light Color</h3>
+
+            <label>R: <span id="lightRText">1.00</span></label>
+            <input
+              id="lightRSlider"
+              type="range"
+              min="0"
+              max="1"
+              value="1"
+              step="0.01"
+              oninput="updateLightColor()"
+            />
+
+            <label>G: <span id="lightGText">1.00</span></label>
+            <input
+              id="lightGSlider"
+              type="range"
+              min="0"
+              max="1"
+              value="1"
+              step="0.01"
+              oninput="updateLightColor()"
+            />
+
+            <label>B: <span id="lightBText">1.00</span></label>
+            <input
+              id="lightBSlider"
+              type="range"
+              min="0"
+              max="1"
+              value="1"
+              step="0.01"
+              oninput="updateLightColor()"
+            />
+          </div>
+
+          <div class="box">
+            <h3>Camera</h3>
+            <p><b>W/A/S/D</b>: Move</p>
+            <p><b>Q/E</b>: Turn left/right</p>
+            <p><b>Z/X</b>: Move up/down</p>
+            <p><b>C/V</b>: Look up/down</p>
+            <p><b>Mouse click</b>: Lock mouse / FPS look</p>
+            <p><b>Esc</b>: Unlock mouse</p>
+          </div>
+
+          <div id="message">
+            Lighting: ON | Normals: OFF | Point: ON | Spot: ON
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./lib/webgl-utils.js"></script>
+    <script src="./lib/webgl-debug.js"></script>
+    <script src="./lib/cuon-utils.js"></script>
+    <script src="./lib/cuon-matrix.js"></script>
+
+    <script src="./src/Camera.js"></script>
+    <script src="./src/Controls.js"></script>
+    <script src="./src/Cube.js"></script>
+    <script src="./src/Sphere.js"></script>
+    <script src="./src/Model.js"></script>
+    <script src="./src/World.js"></script>
+    <script src="./src/index.js"></script>
+  </body>
+</html>
