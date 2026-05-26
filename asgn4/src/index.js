@@ -20,11 +20,10 @@ let lightingOn = true;
 let normalsOn = false;
 let pointLightOn = true;
 let spotLightOn = true;
+let animateLight = true;
 
 let lightPos = [0, 5, 0];
 let lightColor = [1, 1, 1];
-
-let animateLight = true;
 
 const VSHADER_SOURCE = `
   attribute vec4 a_Position;
@@ -187,8 +186,8 @@ function main() {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.enable(gl.DEPTH_TEST);
 
-  updateLightSlider();
   updateLightColor();
+  updateLightTextOnly();
   updateStatusText();
 
   requestAnimationFrame(tick);
@@ -313,15 +312,18 @@ function tick(now) {
   }
 
   if (animateLight) {
-    const radius = 9;
+    const radius = 8.0;
 
     lightPos[0] = Math.cos(g_seconds) * radius;
+    lightPos[1] = 5.0 + Math.sin(g_seconds * 1.5) * 1.5;
     lightPos[2] = Math.sin(g_seconds) * radius;
 
     const xSlider = document.getElementById("lightXSlider");
+    const ySlider = document.getElementById("lightYSlider");
     const zSlider = document.getElementById("lightZSlider");
 
     if (xSlider) xSlider.value = lightPos[0];
+    if (ySlider) ySlider.value = lightPos[1];
     if (zSlider) zSlider.value = lightPos[2];
 
     updateLightTextOnly();
@@ -423,10 +425,13 @@ function drawAssignmentObjects() {
   sphere2.render(gl, programInfo);
 
   if (objModel && objModel.loaded) {
-    objModel.color = [0.9, 0.8, 1.0, 1.0];
+    objModel.color = [0.7, 0.45, 0.25, 1.0];
     objModel.matrix.setIdentity();
+
+    // Change these values if your OBJ is too big/small.
     objModel.matrix.translate(-1, 0.05, 5);
     objModel.matrix.scale(1.5, 1.5, 1.5);
+
     objModel.render(gl, programInfo);
   }
 }
@@ -466,6 +471,11 @@ function toggleSpotLight() {
   updateStatusText();
 }
 
+function toggleAnimateLight() {
+  animateLight = !animateLight;
+  updateStatusText();
+}
+
 function updateLightSlider() {
   animateLight = false;
 
@@ -476,6 +486,7 @@ function updateLightSlider() {
   lightPos = [x, y, z];
 
   updateLightTextOnly();
+  updateStatusText();
 }
 
 function updateLightTextOnly() {
@@ -513,7 +524,9 @@ function updateStatusText() {
     " | Point: " +
     (pointLightOn ? "ON" : "OFF") +
     " | Spot: " +
-    (spotLightOn ? "ON" : "OFF");
+    (spotLightOn ? "ON" : "OFF") +
+    " | Animate: " +
+    (animateLight ? "ON" : "OFF");
 }
 
 window.onload = main;
