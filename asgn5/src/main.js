@@ -79,7 +79,7 @@ const sky = new THREE.Mesh(skyGeometry, skyMaterial);
 scene.add(sky);
 
 // -----------------------------
-// Lights: 5 total, at least 3 different types
+// Lights
 // -----------------------------
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
 scene.add(ambientLight);
@@ -152,7 +152,7 @@ const goldMaterial = new THREE.MeshStandardMaterial({
   roughness: 0.25,
   metalness: 0.9,
   emissive: 0x553300,
-  emissiveIntensity: 0.35,
+  emissiveIntensity: 0.45,
 });
 
 const clothMaterial = new THREE.MeshStandardMaterial({
@@ -219,7 +219,7 @@ for (let i = 0; i < 5; i++) {
 }
 
 // -----------------------------
-// Crates: textured primary shapes
+// Crates
 // -----------------------------
 const cratePositions = [
   [-6, 0.65, 7],
@@ -262,7 +262,7 @@ barrelPositions.forEach((pos) => {
 // Palm trees
 // -----------------------------
 function createPalmTree(x, z, height = 4) {
-  const trunk = makeMesh(
+  makeMesh(
     new THREE.CylinderGeometry(0.35, 0.5, height, 18),
     woodMaterial,
     [x, height / 2, z],
@@ -309,7 +309,7 @@ function createPalmTree(x, z, height = 4) {
     leafGroup.add(coconut);
   }
 
-  return { trunk, leafGroup };
+  return { leafGroup };
 }
 
 const palm1 = createPalmTree(6, -6, 4.8);
@@ -317,7 +317,7 @@ const palm2 = createPalmTree(8.5, -3.5, 3.8);
 const palm3 = createPalmTree(-7.5, -6.5, 4.3);
 
 // -----------------------------
-// Rocks around island
+// Rocks
 // -----------------------------
 const rockPositions = [
   [-10, 0.25, -9],
@@ -341,7 +341,7 @@ rockPositions.forEach((pos, i) => {
 });
 
 // -----------------------------
-// Treasure chest and animated coins
+// Treasure chest and floating coins
 // -----------------------------
 const treasureGroup = new THREE.Group();
 treasureGroup.position.set(3, 0.3, -3);
@@ -372,32 +372,31 @@ treasureGroup.add(chestLock);
 
 const animatedCoins = [];
 
-for (let i = 0; i < 14; i++) {
+for (let i = 0; i < 18; i++) {
+  const angle = (i / 18) * Math.PI * 2;
+  const radius = 0.35 + (i % 3) * 0.23;
+
   const coin = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.25, 0.25, 0.08, 32),
+    new THREE.CylinderGeometry(0.18, 0.18, 0.06, 32),
     goldMaterial
   );
 
   coin.position.set(
-    (Math.random() - 0.5) * 1.6,
-    1.25 + Math.random() * 0.65,
-    (Math.random() - 0.5) * 0.8
+    Math.cos(angle) * radius,
+    1.55 + (i % 4) * 0.18,
+    Math.sin(angle) * radius
   );
 
   coin.rotation.x = Math.PI / 2;
   coin.castShadow = true;
   treasureGroup.add(coin);
-  animatedCoins.push(coin);
+  animatedCoins.push({
+    mesh: coin,
+    baseY: coin.position.y,
+    angle,
+    radius,
+  });
 }
-
-// Big spinning treasure coin
-const wowCoin = new THREE.Mesh(
-  new THREE.TorusGeometry(0.9, 0.18, 18, 48),
-  goldMaterial
-);
-wowCoin.position.set(3, 3.2, -3);
-wowCoin.castShadow = true;
-scene.add(wowCoin);
 
 // -----------------------------
 // Pirate flag
@@ -449,16 +448,16 @@ fireLight.position.set(-1, 1.5, 3.5);
 scene.add(fireLight);
 
 // -----------------------------
-// Custom textured GLB pirate ship
+// GLB model loader
 // -----------------------------
 const loader = new GLTFLoader();
 
+// Pirate ship
 loader.load(
   new URL("../assets/models/pirate_ship.glb", import.meta.url).href,
   (gltf) => {
     const ship = gltf.scene;
 
-    // Moved farther from island and slightly smaller
     ship.position.set(-11, -0.25, 18);
     ship.rotation.y = Math.PI * 0.9;
     ship.scale.set(1.35, 1.35, 1.35);
@@ -507,13 +506,27 @@ loader.load(
 );
 
 // -----------------------------
-// Custom GLB pirate captain model
+// Walking pirate captain
 // -----------------------------
 const captainRoot = new THREE.Group();
 captainRoot.position.set(0.5, 0, 2.5);
 scene.add(captainRoot);
 
-let captainLoaded = false;
+const captainModelGroup = new THREE.Group();
+captainRoot.add(captainModelGroup);
+
+let captainHeading = Math.PI;
+let captainCurrentTarget = 0;
+
+const captainPath = [
+  new THREE.Vector3(0.5, 0, 2.5),
+  new THREE.Vector3(2.4, 0, 0.5),
+  new THREE.Vector3(5.0, 0, -3.4),
+  new THREE.Vector3(1.0, 0, -5.5),
+  new THREE.Vector3(-3.5, 0, -2.8),
+  new THREE.Vector3(-4.8, 0, 3.6),
+  new THREE.Vector3(-1.2, 0, 5.2),
+];
 
 loader.load(
   new URL("../assets/models/pirate_captain.glb", import.meta.url).href,
@@ -531,8 +544,7 @@ loader.load(
       }
     });
 
-    captainRoot.add(captain);
-    captainLoaded = true;
+    captainModelGroup.add(captain);
   },
   undefined,
   (error) => {
@@ -544,24 +556,53 @@ loader.load(
     const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
     const skinMaterial = new THREE.MeshStandardMaterial({ color: 0xc68642 });
 
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 1.4, 16), bodyMaterial);
+    const body = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.35, 0.45, 1.4, 16),
+      bodyMaterial
+    );
     body.position.y = 0.95;
     body.castShadow = true;
-    captainRoot.add(body);
+    captainModelGroup.add(body);
 
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), skinMaterial);
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.3, 16, 16),
+      skinMaterial
+    );
     head.position.y = 1.85;
     head.castShadow = true;
-    captainRoot.add(head);
+    captainModelGroup.add(head);
 
-    const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.18, 16), clothMaterial);
+    const hat = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.45, 0.45, 0.18, 16),
+      clothMaterial
+    );
     hat.position.y = 2.15;
     hat.castShadow = true;
-    captainRoot.add(hat);
-
-    captainLoaded = true;
+    captainModelGroup.add(hat);
   }
 );
+
+function updateCaptain(deltaTime) {
+  const target = captainPath[captainCurrentTarget];
+  const toTarget = target.clone().sub(captainRoot.position);
+  const distance = toTarget.length();
+
+  if (distance < 0.2) {
+    captainCurrentTarget = (captainCurrentTarget + 1) % captainPath.length;
+    return;
+  }
+
+  const direction = toTarget.normalize();
+  const speed = 1.25;
+
+  captainRoot.position.add(direction.multiplyScalar(speed * deltaTime));
+
+  captainHeading = Math.atan2(direction.x, direction.z);
+  captainRoot.rotation.y = captainHeading;
+
+  // Small walking bounce
+  captainModelGroup.position.y = Math.sin(clock.getElapsedTime() * 8) * 0.04;
+}
 
 // -----------------------------
 // Pirate's View wow feature
@@ -571,21 +612,13 @@ const orbitViewButton = document.querySelector("#orbitViewButton");
 const wowNote = document.querySelector("#wowNote");
 
 let pirateViewActive = false;
-let pirateYaw = Math.PI;
-let piratePitch = 0;
-let isMouseDown = false;
-let lastMouseX = 0;
-let lastMouseY = 0;
 
 function setPirateView() {
   pirateViewActive = true;
   controls.enabled = false;
 
-  pirateYaw = Math.PI;
-  piratePitch = 0;
-
   wowNote.innerHTML =
-    "Wow Feature Activated: You are now seeing the island from the pirate captain's point of view.";
+    "Wow Feature Activated: You are now following the walking pirate captain from his point of view.";
 
   updatePirateCamera();
 }
@@ -594,67 +627,44 @@ function setOrbitView() {
   pirateViewActive = false;
   controls.enabled = true;
 
+  captainModelGroup.visible = true;
+
   camera.position.copy(orbitCameraPosition);
   controls.target.copy(orbitTarget);
   controls.update();
 
   wowNote.innerHTML =
-    "Wow Feature: Click <strong>Pirate's View</strong> to see the island from the pirate captain's point of view.";
+    "Wow Feature: Click <strong>Pirate's View</strong> to follow the walking pirate captain from his point of view.";
 }
 
 function updatePirateCamera() {
   const captainWorldPosition = new THREE.Vector3();
   captainRoot.getWorldPosition(captainWorldPosition);
 
-  // Eye/head level. Adjust this number if your captain model is taller/shorter.
+  const forward = new THREE.Vector3(
+    Math.sin(captainHeading),
+    0,
+    Math.cos(captainHeading)
+  );
+
+  // Hide the model in POV so the camera does not get blocked by the head/hat.
+  captainModelGroup.visible = false;
+
   camera.position.set(
-    captainWorldPosition.x,
+    captainWorldPosition.x + forward.x * 0.45,
     captainWorldPosition.y + 1.75,
-    captainWorldPosition.z
+    captainWorldPosition.z + forward.z * 0.45
   );
 
-  const lookDirection = new THREE.Vector3(
-    Math.sin(pirateYaw) * Math.cos(piratePitch),
-    Math.sin(piratePitch),
-    Math.cos(pirateYaw) * Math.cos(piratePitch)
+  camera.lookAt(
+    camera.position.x + forward.x * 8,
+    camera.position.y + 0.15,
+    camera.position.z + forward.z * 8
   );
-
-  camera.lookAt(camera.position.clone().add(lookDirection));
 }
 
 pirateViewButton.addEventListener("click", setPirateView);
 orbitViewButton.addEventListener("click", setOrbitView);
-
-window.addEventListener("mousedown", (event) => {
-  if (!pirateViewActive) return;
-
-  isMouseDown = true;
-  lastMouseX = event.clientX;
-  lastMouseY = event.clientY;
-});
-
-window.addEventListener("mouseup", () => {
-  isMouseDown = false;
-});
-
-window.addEventListener("mousemove", (event) => {
-  if (!pirateViewActive) return;
-
-  const movementX = event.movementX || event.clientX - lastMouseX;
-  const movementY = event.movementY || event.clientY - lastMouseY;
-
-  lastMouseX = event.clientX;
-  lastMouseY = event.clientY;
-
-  // Works both by simply moving the mouse and by dragging
-  pirateYaw -= movementX * 0.003;
-  piratePitch -= movementY * 0.003;
-
-  const maxPitch = Math.PI / 2 - 0.1;
-  piratePitch = Math.max(-maxPitch, Math.min(maxPitch, piratePitch));
-
-  updatePirateCamera();
-});
 
 // -----------------------------
 // Animation loop
@@ -662,10 +672,14 @@ window.addEventListener("mousemove", (event) => {
 const clock = new THREE.Clock();
 
 function animate() {
+  const deltaTime = clock.getDelta();
   const elapsedTime = clock.getElapsedTime();
+
+  updateCaptain(deltaTime);
 
   if (!pirateViewActive) {
     controls.update();
+    captainModelGroup.visible = true;
   } else {
     updatePirateCamera();
   }
@@ -674,18 +688,23 @@ function animate() {
   waterTexture.offset.x = elapsedTime * 0.025;
   waterTexture.offset.y = elapsedTime * 0.015;
 
-  // Animated treasure glow
-  wowCoin.rotation.y = elapsedTime * 2.2;
-  wowCoin.rotation.x = Math.sin(elapsedTime * 1.5) * 0.25;
-  wowCoin.position.y = 3.2 + Math.sin(elapsedTime * 2) * 0.25;
+  // Animated floating coins above treasure chest
+  animatedCoins.forEach((coinData, i) => {
+    const coin = coinData.mesh;
+    const spinSpeed = 1.4 + i * 0.04;
+    const orbitSpeed = elapsedTime * 0.55 + coinData.angle;
 
+    coin.position.x = Math.cos(orbitSpeed) * coinData.radius;
+    coin.position.z = Math.sin(orbitSpeed) * coinData.radius;
+    coin.position.y = coinData.baseY + Math.sin(elapsedTime * 2.2 + i) * 0.12;
+
+    coin.rotation.z = elapsedTime * spinSpeed;
+    coin.rotation.y = elapsedTime * spinSpeed * 0.5;
+  });
+
+  // Treasure glow
   treasureLight.intensity = 2.4 + Math.sin(elapsedTime * 4) * 0.8;
   fireLight.intensity = 2.0 + Math.sin(elapsedTime * 8) * 0.4;
-
-  animatedCoins.forEach((coin, i) => {
-    coin.rotation.z = elapsedTime * (1.3 + i * 0.05);
-    coin.position.y += Math.sin(elapsedTime * 2 + i) * 0.0015;
-  });
 
   // Animated flag waving
   flag.rotation.y = Math.sin(elapsedTime * 3) * 0.18;
