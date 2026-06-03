@@ -99,7 +99,7 @@ directionalLight.shadow.camera.bottom = -35;
 scene.add(directionalLight);
 
 const treasureLight = new THREE.PointLight(0xffc857, 3, 30);
-treasureLight.position.set(3, 2.8, -3);
+treasureLight.position.set(3, 2.4, -3);
 treasureLight.castShadow = true;
 scene.add(treasureLight);
 
@@ -341,27 +341,30 @@ rockPositions.forEach((pos, i) => {
 });
 
 // -----------------------------
-// Open treasure chest and floating coins
+// Open treasure chest and clean floating coins
 // -----------------------------
 const treasureGroup = new THREE.Group();
-treasureGroup.position.set(3, 0.3, -3);
+
+// y = 0 makes the bottom of the chest touch the island surface.
+treasureGroup.position.set(3, 0, -3);
 scene.add(treasureGroup);
 
+// Chest base rests on the floor: height 1, center y = 0.5.
 const chestBase = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 1.3), woodMaterial);
 chestBase.position.y = 0.5;
 chestBase.castShadow = true;
 chestBase.receiveShadow = true;
 treasureGroup.add(chestBase);
 
-// Open lid placed behind/next to the chest instead of covering it
+// Open lid placed flat behind the chest, touching the floor.
 const chestLid = new THREE.Mesh(
-  new THREE.CylinderGeometry(0.68, 0.68, 2.05, 24, 1, false, 0, Math.PI),
+  new THREE.BoxGeometry(2.05, 0.18, 1.25),
   woodMaterial
 );
-chestLid.rotation.z = Math.PI / 2;
-chestLid.rotation.x = -0.75;
-chestLid.position.set(0, 0.88, -0.9);
+chestLid.position.set(0, 0.09, -1.25);
+chestLid.rotation.x = 0;
 chestLid.castShadow = true;
+chestLid.receiveShadow = true;
 treasureGroup.add(chestLid);
 
 const chestLock = new THREE.Mesh(
@@ -372,55 +375,55 @@ chestLock.position.set(0, 0.65, 0.68);
 chestLock.castShadow = true;
 treasureGroup.add(chestLock);
 
-// Gold pile inside chest
-for (let i = 0; i < 18; i++) {
+// Clean small pile inside the chest
+const pilePositions = [
+  [-0.45, 1.05, -0.15],
+  [-0.15, 1.1, 0.05],
+  [0.15, 1.05, -0.1],
+  [0.45, 1.1, 0.12],
+  [-0.25, 1.22, 0.2],
+  [0.25, 1.22, 0.0],
+];
+
+pilePositions.forEach((pos, i) => {
   const pileCoin = new THREE.Mesh(
     new THREE.CylinderGeometry(0.17, 0.17, 0.05, 24),
     goldMaterial
   );
 
-  pileCoin.position.set(
-    (Math.random() - 0.5) * 1.4,
-    1.05 + Math.random() * 0.28,
-    (Math.random() - 0.5) * 0.65
-  );
-
+  pileCoin.position.set(pos[0], pos[1], pos[2]);
   pileCoin.rotation.x = Math.PI / 2;
-  pileCoin.rotation.z = Math.random() * Math.PI;
+  pileCoin.rotation.z = i * 0.5;
   pileCoin.castShadow = true;
   treasureGroup.add(pileCoin);
-}
+});
 
+// A few organized animated coins floating evenly above the chest
 const animatedCoins = [];
 
-for (let i = 0; i < 16; i++) {
-  const angle = (i / 16) * Math.PI * 2;
-  const radius = 0.25 + (i % 3) * 0.18;
+for (let i = 0; i < 6; i++) {
+  const angle = (i / 6) * Math.PI * 2;
 
   const coin = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.15, 0.15, 0.05, 32),
+    new THREE.CylinderGeometry(0.16, 0.16, 0.05, 32),
     goldMaterial
   );
 
-  coin.position.set(
-    Math.cos(angle) * radius,
-    1.55 + (i % 4) * 0.16,
-    Math.sin(angle) * radius
-  );
-
+  coin.position.set(Math.cos(angle) * 0.55, 1.75, Math.sin(angle) * 0.55);
   coin.rotation.x = Math.PI / 2;
   coin.castShadow = true;
   treasureGroup.add(coin);
+
   animatedCoins.push({
     mesh: coin,
-    baseY: coin.position.y,
     angle,
-    radius,
+    radius: 0.55,
+    baseY: 1.75,
   });
 }
 
 // -----------------------------
-// Pirate flag: removed floating white sphere
+// Pirate flag
 // -----------------------------
 makeMesh(
   new THREE.CylinderGeometry(0.08, 0.08, 4, 12),
@@ -553,8 +556,7 @@ loader.load(
 
     captain.position.set(0, 0, 0);
 
-    // This fixes the backwards walking. If your model faces the wrong way,
-    // change this to 0 or Math.PI.
+    // If the pirate walks backward, switch this between 0 and Math.PI.
     captain.rotation.y = 0;
 
     captain.scale.set(1.15, 1.15, 1.15);
@@ -625,14 +627,12 @@ function updateCaptain(deltaTime, elapsedTime) {
 
   captainTargetHeading = Math.atan2(direction.x, direction.z);
 
-  // Smooth curved turning instead of snapping
   const turnSpeed = 3.2;
   const angleDiff = shortestAngleDifference(captainHeading, captainTargetHeading);
   captainHeading += angleDiff * Math.min(1, turnSpeed * deltaTime);
 
   captainRoot.rotation.y = captainHeading;
 
-  // Small walking bounce
   captainModelGroup.position.y = Math.sin(elapsedTime * 8) * 0.04;
 }
 
@@ -691,10 +691,8 @@ function updatePirateCamera() {
     Math.cos(captainHeading)
   ).normalize();
 
-  // Hide captain in POV so the face/hat doesn't block the screen.
   captainModelGroup.visible = false;
 
-  // Slightly in front of the head instead of inside it.
   camera.position.set(
     captainWorldPosition.x + bodyForward.x * 0.7,
     captainWorldPosition.y + 1.85,
@@ -717,8 +715,10 @@ window.addEventListener("mousemove", (event) => {
   const normalizedX = event.clientX / window.innerWidth - 0.5;
   const normalizedY = event.clientY / window.innerHeight - 0.5;
 
-  // Limited head movement: left/right and up/down, not full free camera.
-  pirateLookYawOffset = normalizedX * 1.1;
+  // Inverted left/right like you asked.
+  pirateLookYawOffset = -normalizedX * 1.1;
+
+  // Limited up/down head movement.
   pirateLookPitchOffset = -normalizedY * 0.55;
 
   updatePirateCamera();
@@ -746,18 +746,17 @@ function animate() {
   waterTexture.offset.x = elapsedTime * 0.025;
   waterTexture.offset.y = elapsedTime * 0.015;
 
-  // Animated floating coins above open treasure chest
+  // Clean uniform animated floating coins above open treasure chest
   animatedCoins.forEach((coinData, i) => {
     const coin = coinData.mesh;
-    const spinSpeed = 1.4 + i * 0.04;
-    const orbitSpeed = elapsedTime * 0.55 + coinData.angle;
+    const orbitSpeed = elapsedTime * 0.8 + coinData.angle;
 
     coin.position.x = Math.cos(orbitSpeed) * coinData.radius;
     coin.position.z = Math.sin(orbitSpeed) * coinData.radius;
-    coin.position.y = coinData.baseY + Math.sin(elapsedTime * 2.2 + i) * 0.12;
+    coin.position.y = coinData.baseY + Math.sin(elapsedTime * 2.5 + i) * 0.08;
 
-    coin.rotation.z = elapsedTime * spinSpeed;
-    coin.rotation.y = elapsedTime * spinSpeed * 0.5;
+    coin.rotation.z = elapsedTime * 2.2;
+    coin.rotation.y = elapsedTime * 1.1;
   });
 
   // Treasure glow
