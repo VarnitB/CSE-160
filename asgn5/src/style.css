@@ -74,6 +74,22 @@ button {
   color: white;
 }
 
+.lightToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 0;
+  font-size: 14px;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.lightToggle input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 #wowNote {
   margin-top: 16px;
   padding: 12px;

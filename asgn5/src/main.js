@@ -110,6 +110,27 @@ spotLight.castShadow = true;
 scene.add(spotLight);
 scene.add(spotLight.target);
 
+// Fire light is created later near the campfire.
+let fireLight = null;
+
+// -----------------------------
+// Light toggle controls
+// -----------------------------
+function setupLightToggle(id, light) {
+  const checkbox = document.querySelector(id);
+  if (!checkbox || !light) return;
+
+  checkbox.addEventListener("change", () => {
+    light.visible = checkbox.checked;
+  });
+}
+
+setupLightToggle("#ambientToggle", ambientLight);
+setupLightToggle("#hemisphereToggle", hemisphereLight);
+setupLightToggle("#directionalToggle", directionalLight);
+setupLightToggle("#treasureToggle", treasureLight);
+setupLightToggle("#spotToggle", spotLight);
+
 // -----------------------------
 // Materials
 // -----------------------------
@@ -424,7 +445,7 @@ chestLock.position.set(0, 0.65, 0.68);
 chestLock.castShadow = true;
 treasureGroup.add(chestLock);
 
-// Only clean animated coins floating above the treasure chest
+// Clean animated coins floating above the treasure chest
 const animatedCoins = [];
 
 for (let i = 0; i < 6; i++) {
@@ -487,9 +508,10 @@ const flame = makeMesh(
   [-1, 0.9, 3.5]
 );
 
-const fireLight = new THREE.PointLight(0xff6b00, 2.5, 18);
+fireLight = new THREE.PointLight(0xff6b00, 2.5, 18);
 fireLight.position.set(-1, 1.5, 3.5);
 scene.add(fireLight);
+setupLightToggle("#fireToggle", fireLight);
 
 // -----------------------------
 // GLB model loader
@@ -787,7 +809,10 @@ function animate() {
   });
 
   treasureLight.intensity = 2.4 + Math.sin(elapsedTime * 4) * 0.8;
-  fireLight.intensity = 2.0 + Math.sin(elapsedTime * 8) * 0.4;
+
+  if (fireLight) {
+    fireLight.intensity = 2.0 + Math.sin(elapsedTime * 8) * 0.4;
+  }
 
   flag.rotation.y = Math.sin(elapsedTime * 3) * 0.18;
   flag.position.y = 3.2 + Math.sin(elapsedTime * 4) * 0.05;
