@@ -140,6 +140,7 @@ const woodMaterial = new THREE.MeshStandardMaterial({
 const leafMaterial = new THREE.MeshStandardMaterial({
   color: 0x2e9f3f,
   roughness: 0.7,
+  side: THREE.DoubleSide,
 });
 
 const rockMaterial = new THREE.MeshStandardMaterial({
@@ -178,6 +179,24 @@ function makeMesh(
   mesh.receiveShadow = true;
   scene.add(mesh);
   return mesh;
+}
+
+function createHalfCylinderLid(width, radius) {
+  const shape = new THREE.Shape();
+
+  shape.moveTo(-radius, 0);
+  shape.absarc(0, 0, radius, Math.PI, 0, false);
+  shape.lineTo(-radius, 0);
+
+  const geometry = new THREE.ExtrudeGeometry(shape, {
+    depth: width,
+    bevelEnabled: false,
+    curveSegments: 32,
+  });
+
+  geometry.center();
+
+  return geometry;
 }
 
 // -----------------------------
@@ -259,8 +278,26 @@ barrelPositions.forEach((pos) => {
 });
 
 // -----------------------------
-// Palm trees
+// Palm trees with better palm leaves
 // -----------------------------
+function createPalmLeaf() {
+  const leafShape = new THREE.Shape();
+
+  leafShape.moveTo(0, 0);
+  leafShape.lineTo(0.35, 0.25);
+  leafShape.lineTo(2.7, 0);
+  leafShape.lineTo(0.35, -0.25);
+  leafShape.lineTo(0, 0);
+
+  const leafGeometry = new THREE.ShapeGeometry(leafShape);
+  const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+
+  leaf.castShadow = true;
+  leaf.receiveShadow = true;
+
+  return leaf;
+}
+
 function createPalmTree(x, z, height = 4) {
   makeMesh(
     new THREE.CylinderGeometry(0.35, 0.5, height, 18),
@@ -273,18 +310,17 @@ function createPalmTree(x, z, height = 4) {
   leafGroup.position.set(x, height + 0.25, z);
   scene.add(leafGroup);
 
-  for (let i = 0; i < 8; i++) {
-    const leaf = new THREE.Mesh(
-      new THREE.ConeGeometry(0.45, 3.6, 8),
-      leafMaterial
-    );
+  for (let i = 0; i < 10; i++) {
+    const leaf = createPalmLeaf();
 
-    leaf.rotation.z = Math.PI / 2;
-    leaf.rotation.y = (Math.PI * 2 * i) / 8;
-    leaf.position.x = Math.cos(leaf.rotation.y) * 1.2;
-    leaf.position.z = Math.sin(leaf.rotation.y) * 1.2;
-    leaf.castShadow = true;
-    leaf.receiveShadow = true;
+    const angle = (Math.PI * 2 * i) / 10;
+    leaf.rotation.y = -angle;
+    leaf.rotation.x = -0.35;
+    leaf.rotation.z = i % 2 === 0 ? 0.12 : -0.12;
+
+    leaf.position.x = Math.cos(angle) * 0.15;
+    leaf.position.z = Math.sin(angle) * 0.15;
+
     leafGroup.add(leaf);
   }
 
@@ -344,28 +380,41 @@ rockPositions.forEach((pos, i) => {
 // Open treasure chest and clean floating coins
 // -----------------------------
 const treasureGroup = new THREE.Group();
-
-// y = 0 makes the bottom of the chest touch the island surface.
 treasureGroup.position.set(3, 0, -3);
 scene.add(treasureGroup);
 
-// Chest base rests on the floor: height 1, center y = 0.5.
+// Chest base touches the island floor
 const chestBase = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 1.3), woodMaterial);
 chestBase.position.y = 0.5;
 chestBase.castShadow = true;
 chestBase.receiveShadow = true;
 treasureGroup.add(chestBase);
 
-// Open lid placed flat behind the chest, touching the floor.
+// Half-cylinder lid lying behind the chest.
+// The flat side faces down and sits almost directly on the sand.
 const chestLid = new THREE.Mesh(
-  new THREE.BoxGeometry(2.05, 0.18, 1.25),
+  createHalfCylinderLid(2.05, 0.65),
   woodMaterial
 );
-chestLid.position.set(0, 0.09, -1.25);
-chestLid.rotation.x = 0;
+
+chestLid.rotation.y = Math.PI / 2;
+chestLid.position.set(0, 0.33, -1.55);
 chestLid.castShadow = true;
 chestLid.receiveShadow = true;
 treasureGroup.add(chestLid);
+
+// Thin dark bottom strip under the lid so the flat side looks hidden on the floor.
+const lidBottomShadow = new THREE.Mesh(
+  new THREE.BoxGeometry(2.05, 0.03, 1.3),
+  new THREE.MeshStandardMaterial({
+    color: 0x3a2414,
+    roughness: 0.9,
+  })
+);
+lidBottomShadow.position.set(0, 0.018, -1.55);
+lidBottomShadow.castShadow = false;
+lidBottomShadow.receiveShadow = true;
+treasureGroup.add(lidBottomShadow);
 
 const chestLock = new THREE.Mesh(
   new THREE.BoxGeometry(0.3, 0.35, 0.1),
@@ -375,30 +424,7 @@ chestLock.position.set(0, 0.65, 0.68);
 chestLock.castShadow = true;
 treasureGroup.add(chestLock);
 
-// Clean small pile inside the chest
-const pilePositions = [
-  [-0.45, 1.05, -0.15],
-  [-0.15, 1.1, 0.05],
-  [0.15, 1.05, -0.1],
-  [0.45, 1.1, 0.12],
-  [-0.25, 1.22, 0.2],
-  [0.25, 1.22, 0.0],
-];
-
-pilePositions.forEach((pos, i) => {
-  const pileCoin = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.17, 0.17, 0.05, 24),
-    goldMaterial
-  );
-
-  pileCoin.position.set(pos[0], pos[1], pos[2]);
-  pileCoin.rotation.x = Math.PI / 2;
-  pileCoin.rotation.z = i * 0.5;
-  pileCoin.castShadow = true;
-  treasureGroup.add(pileCoin);
-});
-
-// A few organized animated coins floating evenly above the chest
+// Only clean animated coins floating above the treasure chest
 const animatedCoins = [];
 
 for (let i = 0; i < 6; i++) {
@@ -409,7 +435,7 @@ for (let i = 0; i < 6; i++) {
     goldMaterial
   );
 
-  coin.position.set(Math.cos(angle) * 0.55, 1.75, Math.sin(angle) * 0.55);
+  coin.position.set(Math.cos(angle) * 0.58, 1.65, Math.sin(angle) * 0.58);
   coin.rotation.x = Math.PI / 2;
   coin.castShadow = true;
   treasureGroup.add(coin);
@@ -417,8 +443,8 @@ for (let i = 0; i < 6; i++) {
   animatedCoins.push({
     mesh: coin,
     angle,
-    radius: 0.55,
-    baseY: 1.75,
+    radius: 0.58,
+    baseY: 1.65,
   });
 }
 
@@ -537,16 +563,16 @@ let captainHeading = 0;
 let captainTargetHeading = 0;
 let captainCurrentTarget = 1;
 
-// Safer path: stays inside the island bounds
+// Tight safe path, fully inside island bounds and away from edges
 const captainPath = [
   new THREE.Vector3(0, 0, 1.8),
-  new THREE.Vector3(2.2, 0, 0.2),
-  new THREE.Vector3(3.8, 0, -2.6),
-  new THREE.Vector3(1.4, 0, -4.2),
-  new THREE.Vector3(-2.7, 0, -3.1),
-  new THREE.Vector3(-4.0, 0, 0.7),
-  new THREE.Vector3(-2.2, 0, 4.0),
-  new THREE.Vector3(1.3, 0, 3.8),
+  new THREE.Vector3(1.7, 0, 0.4),
+  new THREE.Vector3(2.6, 0, -1.5),
+  new THREE.Vector3(1.0, 0, -3.0),
+  new THREE.Vector3(-1.6, 0, -2.6),
+  new THREE.Vector3(-2.8, 0, -0.2),
+  new THREE.Vector3(-1.5, 0, 2.4),
+  new THREE.Vector3(1.2, 0, 2.7),
 ];
 
 loader.load(
@@ -610,6 +636,11 @@ function shortestAngleDifference(current, target) {
   return Math.atan2(Math.sin(target - current), Math.cos(target - current));
 }
 
+function clampCaptainToIsland() {
+  captainRoot.position.x = THREE.MathUtils.clamp(captainRoot.position.x, -5.2, 5.2);
+  captainRoot.position.z = THREE.MathUtils.clamp(captainRoot.position.z, -5.2, 5.2);
+}
+
 function updateCaptain(deltaTime, elapsedTime) {
   const target = captainPath[captainCurrentTarget];
   const toTarget = target.clone().sub(captainRoot.position);
@@ -621,13 +652,14 @@ function updateCaptain(deltaTime, elapsedTime) {
   }
 
   const direction = toTarget.normalize();
-  const speed = 1.15;
+  const speed = 1.05;
 
   captainRoot.position.add(direction.multiplyScalar(speed * deltaTime));
+  clampCaptainToIsland();
 
   captainTargetHeading = Math.atan2(direction.x, direction.z);
 
-  const turnSpeed = 3.2;
+  const turnSpeed = 2.4;
   const angleDiff = shortestAngleDifference(captainHeading, captainTargetHeading);
   captainHeading += angleDiff * Math.min(1, turnSpeed * deltaTime);
 
@@ -715,10 +747,7 @@ window.addEventListener("mousemove", (event) => {
   const normalizedX = event.clientX / window.innerWidth - 0.5;
   const normalizedY = event.clientY / window.innerHeight - 0.5;
 
-  // Inverted left/right like you asked.
   pirateLookYawOffset = -normalizedX * 1.1;
-
-  // Limited up/down head movement.
   pirateLookPitchOffset = -normalizedY * 0.55;
 
   updatePirateCamera();
@@ -742,11 +771,9 @@ function animate() {
     updatePirateCamera();
   }
 
-  // Animated water texture
   waterTexture.offset.x = elapsedTime * 0.025;
   waterTexture.offset.y = elapsedTime * 0.015;
 
-  // Clean uniform animated floating coins above open treasure chest
   animatedCoins.forEach((coinData, i) => {
     const coin = coinData.mesh;
     const orbitSpeed = elapsedTime * 0.8 + coinData.angle;
@@ -759,20 +786,16 @@ function animate() {
     coin.rotation.y = elapsedTime * 1.1;
   });
 
-  // Treasure glow
   treasureLight.intensity = 2.4 + Math.sin(elapsedTime * 4) * 0.8;
   fireLight.intensity = 2.0 + Math.sin(elapsedTime * 8) * 0.4;
 
-  // Animated flag waving
   flag.rotation.y = Math.sin(elapsedTime * 3) * 0.18;
   flag.position.y = 3.2 + Math.sin(elapsedTime * 4) * 0.05;
 
-  // Gentle palm movement
   palm1.leafGroup.rotation.y = Math.sin(elapsedTime * 0.7) * 0.08;
   palm2.leafGroup.rotation.y = Math.sin(elapsedTime * 0.8 + 1) * 0.08;
   palm3.leafGroup.rotation.y = Math.sin(elapsedTime * 0.9 + 2) * 0.08;
 
-  // Flickering flame
   flame.scale.y = 1 + Math.sin(elapsedTime * 10) * 0.15;
   flame.rotation.y = elapsedTime * 1.5;
 
