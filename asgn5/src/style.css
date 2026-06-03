@@ -1,0 +1,64 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #000;
+}
+
+#webgl {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+#infoPanel {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 330px;
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  background: rgba(9, 17, 28, 0.88);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+#infoPanel h1 {
+  margin: 0 0 8px;
+  font-size: 24px;
+  color: #ffd166;
+}
+
+#infoPanel h2 {
+  margin: 18px 0 8px;
+  font-size: 17px;
+  color: #72ddf7;
+}
+
+#infoPanel p,
+#infoPanel li {
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+#infoPanel ul {
+  padding-left: 20px;
+  margin-top: 8px;
+}
+
+#treasureMessage {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 209, 102, 0.14);
+  color: #ffd166;
+  font-weight: bold;
+  text-align: center;
+}

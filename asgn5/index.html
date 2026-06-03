@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Assignment 5 - Three.js Pirate Cove</title>
+    <link rel="stylesheet" href="./src/style.css" />
+
+    <!-- Three.js import map, no Vite needed -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <canvas id="webgl"></canvas>
+
+    <div id="infoPanel">
+      <h1>Pirate Treasure Cove</h1>
+      <p>
+        A Three.js island scene with textured objects, a loaded GLB pirate ship,
+        animated treasure, ocean motion, skybox, lights, and mouse controls.
+      </p>
+
+      <h2>Controls</h2>
+      <p>Left click + drag: rotate camera</p>
+      <p>Scroll: zoom</p>
+      <p>Right click + drag: pan</p>
+      <p>Click the glowing treasure for the wow feature.</p>
+
+      <h2>Rubric Checklist</h2>
+      <ul>
+        <li>20+ primary shapes</li>
+        <li>3+ shape types: cubes, spheres, cylinders, cones, torus</li>
+        <li>Textured primary shapes</li>
+        <li>Custom textured GLB model</li>
+        <li>3+ light sources</li>
+        <li>Perspective camera</li>
+        <li>OrbitControls mouse navigation</li>
+        <li>Skybox background</li>
+        <li>Animated objects</li>
+        <li>Wow feature: clickable glowing treasure + animated ocean</li>
+      </ul>
+
+      <div id="treasureMessage">Treasure not found yet...</div>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
