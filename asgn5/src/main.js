@@ -341,7 +341,7 @@ rockPositions.forEach((pos, i) => {
 });
 
 // -----------------------------
-// Treasure chest and floating coins
+// Open treasure chest and floating coins
 // -----------------------------
 const treasureGroup = new THREE.Group();
 treasureGroup.position.set(3, 0.3, -3);
@@ -353,12 +353,14 @@ chestBase.castShadow = true;
 chestBase.receiveShadow = true;
 treasureGroup.add(chestBase);
 
+// Open lid placed behind/next to the chest instead of covering it
 const chestLid = new THREE.Mesh(
   new THREE.CylinderGeometry(0.68, 0.68, 2.05, 24, 1, false, 0, Math.PI),
   woodMaterial
 );
 chestLid.rotation.z = Math.PI / 2;
-chestLid.position.y = 1.1;
+chestLid.rotation.x = -0.75;
+chestLid.position.set(0, 0.88, -0.9);
 chestLid.castShadow = true;
 treasureGroup.add(chestLid);
 
@@ -370,20 +372,39 @@ chestLock.position.set(0, 0.65, 0.68);
 chestLock.castShadow = true;
 treasureGroup.add(chestLock);
 
+// Gold pile inside chest
+for (let i = 0; i < 18; i++) {
+  const pileCoin = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.17, 0.17, 0.05, 24),
+    goldMaterial
+  );
+
+  pileCoin.position.set(
+    (Math.random() - 0.5) * 1.4,
+    1.05 + Math.random() * 0.28,
+    (Math.random() - 0.5) * 0.65
+  );
+
+  pileCoin.rotation.x = Math.PI / 2;
+  pileCoin.rotation.z = Math.random() * Math.PI;
+  pileCoin.castShadow = true;
+  treasureGroup.add(pileCoin);
+}
+
 const animatedCoins = [];
 
-for (let i = 0; i < 18; i++) {
-  const angle = (i / 18) * Math.PI * 2;
-  const radius = 0.35 + (i % 3) * 0.23;
+for (let i = 0; i < 16; i++) {
+  const angle = (i / 16) * Math.PI * 2;
+  const radius = 0.25 + (i % 3) * 0.18;
 
   const coin = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.18, 0.18, 0.06, 32),
+    new THREE.CylinderGeometry(0.15, 0.15, 0.05, 32),
     goldMaterial
   );
 
   coin.position.set(
     Math.cos(angle) * radius,
-    1.55 + (i % 4) * 0.18,
+    1.55 + (i % 4) * 0.16,
     Math.sin(angle) * radius
   );
 
@@ -399,7 +420,7 @@ for (let i = 0; i < 18; i++) {
 }
 
 // -----------------------------
-// Pirate flag
+// Pirate flag: removed floating white sphere
 // -----------------------------
 makeMesh(
   new THREE.CylinderGeometry(0.08, 0.08, 4, 12),
@@ -411,12 +432,6 @@ const flag = makeMesh(
   new THREE.BoxGeometry(1.8, 1, 0.06),
   clothMaterial,
   [-1.55, 3.2, -7]
-);
-
-makeMesh(
-  new THREE.SphereGeometry(0.22, 16, 16),
-  new THREE.MeshStandardMaterial({ color: 0xffffff }),
-  [-1.6, 3.25, -6.93]
 );
 
 // -----------------------------
@@ -509,23 +524,26 @@ loader.load(
 // Walking pirate captain
 // -----------------------------
 const captainRoot = new THREE.Group();
-captainRoot.position.set(0.5, 0, 2.5);
+captainRoot.position.set(0, 0, 1.8);
 scene.add(captainRoot);
 
 const captainModelGroup = new THREE.Group();
 captainRoot.add(captainModelGroup);
 
-let captainHeading = Math.PI;
-let captainCurrentTarget = 0;
+let captainHeading = 0;
+let captainTargetHeading = 0;
+let captainCurrentTarget = 1;
 
+// Safer path: stays inside the island bounds
 const captainPath = [
-  new THREE.Vector3(0.5, 0, 2.5),
-  new THREE.Vector3(2.4, 0, 0.5),
-  new THREE.Vector3(5.0, 0, -3.4),
-  new THREE.Vector3(1.0, 0, -5.5),
-  new THREE.Vector3(-3.5, 0, -2.8),
-  new THREE.Vector3(-4.8, 0, 3.6),
-  new THREE.Vector3(-1.2, 0, 5.2),
+  new THREE.Vector3(0, 0, 1.8),
+  new THREE.Vector3(2.2, 0, 0.2),
+  new THREE.Vector3(3.8, 0, -2.6),
+  new THREE.Vector3(1.4, 0, -4.2),
+  new THREE.Vector3(-2.7, 0, -3.1),
+  new THREE.Vector3(-4.0, 0, 0.7),
+  new THREE.Vector3(-2.2, 0, 4.0),
+  new THREE.Vector3(1.3, 0, 3.8),
 ];
 
 loader.load(
@@ -534,7 +552,11 @@ loader.load(
     const captain = gltf.scene;
 
     captain.position.set(0, 0, 0);
-    captain.rotation.y = Math.PI;
+
+    // This fixes the backwards walking. If your model faces the wrong way,
+    // change this to 0 or Math.PI.
+    captain.rotation.y = 0;
+
     captain.scale.set(1.15, 1.15, 1.15);
 
     captain.traverse((child) => {
@@ -582,26 +604,36 @@ loader.load(
   }
 );
 
-function updateCaptain(deltaTime) {
+function shortestAngleDifference(current, target) {
+  return Math.atan2(Math.sin(target - current), Math.cos(target - current));
+}
+
+function updateCaptain(deltaTime, elapsedTime) {
   const target = captainPath[captainCurrentTarget];
   const toTarget = target.clone().sub(captainRoot.position);
   const distance = toTarget.length();
 
-  if (distance < 0.2) {
+  if (distance < 0.22) {
     captainCurrentTarget = (captainCurrentTarget + 1) % captainPath.length;
     return;
   }
 
   const direction = toTarget.normalize();
-  const speed = 1.25;
+  const speed = 1.15;
 
   captainRoot.position.add(direction.multiplyScalar(speed * deltaTime));
 
-  captainHeading = Math.atan2(direction.x, direction.z);
+  captainTargetHeading = Math.atan2(direction.x, direction.z);
+
+  // Smooth curved turning instead of snapping
+  const turnSpeed = 3.2;
+  const angleDiff = shortestAngleDifference(captainHeading, captainTargetHeading);
+  captainHeading += angleDiff * Math.min(1, turnSpeed * deltaTime);
+
   captainRoot.rotation.y = captainHeading;
 
   // Small walking bounce
-  captainModelGroup.position.y = Math.sin(clock.getElapsedTime() * 8) * 0.04;
+  captainModelGroup.position.y = Math.sin(elapsedTime * 8) * 0.04;
 }
 
 // -----------------------------
@@ -612,10 +644,14 @@ const orbitViewButton = document.querySelector("#orbitViewButton");
 const wowNote = document.querySelector("#wowNote");
 
 let pirateViewActive = false;
+let pirateLookYawOffset = 0;
+let pirateLookPitchOffset = 0;
 
 function setPirateView() {
   pirateViewActive = true;
   controls.enabled = false;
+  pirateLookYawOffset = 0;
+  pirateLookPitchOffset = 0;
 
   wowNote.innerHTML =
     "Wow Feature Activated: You are now following the walking pirate captain from his point of view.";
@@ -641,30 +677,52 @@ function updatePirateCamera() {
   const captainWorldPosition = new THREE.Vector3();
   captainRoot.getWorldPosition(captainWorldPosition);
 
+  const finalYaw = captainHeading + pirateLookYawOffset;
+
   const forward = new THREE.Vector3(
+    Math.sin(finalYaw),
+    Math.sin(pirateLookPitchOffset),
+    Math.cos(finalYaw)
+  ).normalize();
+
+  const bodyForward = new THREE.Vector3(
     Math.sin(captainHeading),
     0,
     Math.cos(captainHeading)
-  );
+  ).normalize();
 
-  // Hide the model in POV so the camera does not get blocked by the head/hat.
+  // Hide captain in POV so the face/hat doesn't block the screen.
   captainModelGroup.visible = false;
 
+  // Slightly in front of the head instead of inside it.
   camera.position.set(
-    captainWorldPosition.x + forward.x * 0.45,
-    captainWorldPosition.y + 1.75,
-    captainWorldPosition.z + forward.z * 0.45
+    captainWorldPosition.x + bodyForward.x * 0.7,
+    captainWorldPosition.y + 1.85,
+    captainWorldPosition.z + bodyForward.z * 0.7
   );
 
   camera.lookAt(
     camera.position.x + forward.x * 8,
-    camera.position.y + 0.15,
+    camera.position.y + forward.y * 8,
     camera.position.z + forward.z * 8
   );
 }
 
 pirateViewButton.addEventListener("click", setPirateView);
 orbitViewButton.addEventListener("click", setOrbitView);
+
+window.addEventListener("mousemove", (event) => {
+  if (!pirateViewActive) return;
+
+  const normalizedX = event.clientX / window.innerWidth - 0.5;
+  const normalizedY = event.clientY / window.innerHeight - 0.5;
+
+  // Limited head movement: left/right and up/down, not full free camera.
+  pirateLookYawOffset = normalizedX * 1.1;
+  pirateLookPitchOffset = -normalizedY * 0.55;
+
+  updatePirateCamera();
+});
 
 // -----------------------------
 // Animation loop
@@ -675,7 +733,7 @@ function animate() {
   const deltaTime = clock.getDelta();
   const elapsedTime = clock.getElapsedTime();
 
-  updateCaptain(deltaTime);
+  updateCaptain(deltaTime, elapsedTime);
 
   if (!pirateViewActive) {
     controls.update();
@@ -688,7 +746,7 @@ function animate() {
   waterTexture.offset.x = elapsedTime * 0.025;
   waterTexture.offset.y = elapsedTime * 0.015;
 
-  // Animated floating coins above treasure chest
+  // Animated floating coins above open treasure chest
   animatedCoins.forEach((coinData, i) => {
     const coin = coinData.mesh;
     const spinSpeed = 1.4 + i * 0.04;
